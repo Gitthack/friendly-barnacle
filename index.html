@@ -559,6 +559,71 @@
         transform: translateX(5px);
     }
 
+    .retweet-prompt {
+        background: linear-gradient(135deg, rgba(124, 58, 237, 0.2) 0%, rgba(0, 212, 255, 0.2) 100%);
+        border: 2px solid #7c3aed;
+        border-radius: 16px;
+        padding: 20px;
+        margin-top: 15px;
+        text-align: center;
+    }
+
+    .retweet-prompt h3 {
+        color: #00d4ff;
+        font-size: 1.1em;
+        margin-bottom: 15px;
+    }
+
+    .retweet-prompt p {
+        color: #cbd5e1;
+        font-size: 0.9em;
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+
+    .retweet-btn {
+        background: linear-gradient(135deg, #1DA1F2 0%, #00d4ff 100%);
+        border: none;
+        padding: 14px 30px;
+        border-radius: 12px;
+        color: white;
+        font-weight: 700;
+        font-size: 1em;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 20px rgba(29, 161, 242, 0.4);
+    }
+
+    .retweet-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 30px rgba(0, 212, 255, 0.6);
+    }
+
+    .retweet-info {
+        margin-top: 15px;
+        padding: 12px;
+        background: rgba(30, 41, 59, 0.5);
+        border-radius: 8px;
+        font-size: 0.85em;
+        color: #94a3b8;
+    }
+
+    .verified-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: rgba(16, 185, 129, 0.2);
+        color: #10b981;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85em;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
     @media (max-width: 600px) {
         .header {
             padding: 12px 15px;
@@ -640,7 +705,7 @@
             </div>
 
             <div class="diagnosis-options">
-                <div class="option-card" onclick="selectDiagnosisMode('basic')">
+                <div class="option-card selected" onclick="selectDiagnosisMode('basic')">
                     <div class="option-header">
                         <input type="radio" name="diagMode" id="basicMode" checked>
                         <label for="basicMode">
@@ -654,7 +719,7 @@
                         <input type="radio" name="diagMode" id="grokMode">
                         <label for="grokMode">
                             <strong>🤖 Grok AI 深度分析</strong>
-                            <span>使用 Grok 进行专业审计</span>
+                            <span>需要转发推文解锁</span>
                         </label>
                     </div>
                 </div>
@@ -664,6 +729,8 @@
                 <span>🔬</span>
                 <span>开始诊断</span>
             </button>
+
+            <div id="retweetPrompt" style="display: none;"></div>
 
             <div id="healthResults"></div>
             <div id="grokPrompt" style="display: none;"></div>
@@ -925,6 +992,8 @@
         }, 100);
     }
 
+    let hasRetweeted = false;
+
     function diagnoseAccount() {
         const username = document.getElementById('xUsername').value.trim().replace('@', '');
         
@@ -933,17 +1002,30 @@
             return;
         }
 
-        const mode = document.querySelector('input[name="diagMode"]:checked').id;
+        const mode = document.querySelector('input[name="diagMode"]:checked');
+        if (!mode) {
+            showAlert('healthResults', '⚠️ 请选择诊断模式', 'warning');
+            return;
+        }
+
+        const modeId = mode.id;
         
-        if (mode === 'grokMode') {
+        if (modeId === 'grokMode') {
+            if (!hasRetweeted) {
+                showRetweetPrompt();
+                return;
+            }
             showGrokPrompt(username);
             return;
         }
 
+        // 基础分析模式
         const diagnoseBtn = document.getElementById('diagnoseBtn');
         diagnoseBtn.disabled = true;
         
         showLoading('healthResults', '正在深度分析账号...');
+        document.getElementById('retweetPrompt').style.display = 'none';
+        document.getElementById('grokPrompt').style.display = 'none';
 
         setTimeout(() => {
             const result = diagnoseAccountWithAlgorithm(username);
@@ -953,17 +1035,77 @@
     }
 
     function selectDiagnosisMode(mode) {
-        document.querySelectorAll('.option-card').forEach(card => {
-            card.classList.remove('selected');
-        });
+        const cards = document.querySelectorAll('.option-card');
+        cards.forEach(card => card.classList.remove('selected'));
         
         if (mode === 'basic') {
             document.getElementById('basicMode').checked = true;
-            document.querySelectorAll('.option-card')[0].classList.add('selected');
+            cards[0].classList.add('selected');
         } else {
             document.getElementById('grokMode').checked = true;
-            document.querySelectorAll('.option-card')[1].classList.add('selected');
+            cards[1].classList.add('selected');
         }
+    }
+
+    function showRetweetPrompt() {
+        const retweetPromptDiv = document.getElementById('retweetPrompt');
+        retweetPromptDiv.style.display = 'block';
+        
+        retweetPromptDiv.innerHTML = `
+            <div class="retweet-prompt">
+                <h3>🎁 解锁 Grok AI 深度分析</h3>
+                <p>转发以下推文即可免费使用 Grok AI 进行专业账号审计</p>
+                
+                <button class="retweet-btn" onclick="openRetweetPage()">
+                    <span>🔄</span>
+                    <span>转发推文解锁</span>
+                </button>
+
+                <div class="retweet-info">
+                    💡 转发后点击下方"已完成转发"按钮继续
+                </div>
+
+                <button class="btn btn-secondary" onclick="confirmRetweet()" style="margin-top: 10px; max-width: 200px; margin-left: auto; margin-right: auto;">
+                    ✅ 已完成转发
+                </button>
+            </div>
+        `;
+
+        document.getElementById('healthResults').innerHTML = '';
+        document.getElementById('grokPrompt').style.display = 'none';
+        
+        setTimeout(() => {
+            retweetPromptDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+    }
+
+    function openRetweetPage() {
+        const tweetUrl = 'https://x.com/0xkingskuan/status/2013495958622085156';
+        const retweetUrl = `https://twitter.com/intent/retweet?tweet_id=2013495958622085156`;
+        window.open(retweetUrl, '_blank', 'width=550,height=420');
+    }
+
+    function confirmRetweet() {
+        hasRetweeted = true;
+        
+        const retweetPromptDiv = document.getElementById('retweetPrompt');
+        retweetPromptDiv.innerHTML = `
+            <div class="retweet-prompt">
+                <h3>✅ 感谢支持！</h3>
+                <div class="verified-badge">
+                    <span>✓</span>
+                    <span>已解锁 Grok AI 深度分析</span>
+                </div>
+                <p style="margin-top: 15px;">现在可以使用 Grok AI 进行专业账号审计了</p>
+            </div>
+        `;
+
+        setTimeout(() => {
+            const username = document.getElementById('xUsername').value.trim().replace('@', '');
+            if (username) {
+                showGrokPrompt(username);
+            }
+        }, 1500);
     }
 
     function showGrokPrompt(username) {

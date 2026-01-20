@@ -14,150 +14,211 @@
 
 ```
     body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #0a0e27;
+        color: #fff;
         min-height: 100vh;
-        padding: 0;
+        overflow-x: hidden;
+    }
+
+    .bg-animation {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(ellipse at top, #1e3a8a 0%, transparent 50%),
+            radial-gradient(ellipse at bottom, #7c3aed 0%, transparent 50%),
+            linear-gradient(180deg, #0a0e27 0%, #1a1f3a 100%);
+        z-index: 0;
     }
 
     .container {
+        position: relative;
+        z-index: 1;
         max-width: 900px;
         margin: 0 auto;
-        padding: 10px;
+        padding: 0;
     }
 
     .header {
-        text-align: center;
-        color: white;
-        padding: 20px 10px 15px;
-        margin: 0;
+        background: rgba(10, 14, 39, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(124, 58, 237, 0.3);
+        padding: 15px 20px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
     }
 
-    .header h1 {
-        font-size: 1.6em;
-        margin-bottom: 5px;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    .header-content {
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 8px;
+        justify-content: space-between;
     }
 
-    .header .subtitle {
-        font-size: 0.85em;
-        opacity: 0.9;
-        margin-bottom: 3px;
+    .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 
-    .header .creator {
-        font-size: 0.75em;
-        opacity: 0.8;
-        font-style: italic;
+    .logo-icon {
+        font-size: 24px;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+
+    .logo-text h1 {
+        font-size: 1.2em;
+        background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 700;
+    }
+
+    .logo-text .subtitle {
+        font-size: 0.7em;
+        color: #64748b;
+        margin-top: -2px;
+    }
+
+    .creator-badge {
+        background: linear-gradient(135deg, #7c3aed 0%, #00d4ff 100%);
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7em;
+        font-weight: 600;
+        box-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
+    }
+
+    .content {
+        padding: 15px;
     }
 
     .card {
-        background: white;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(124, 58, 237, 0.3);
         border-radius: 16px;
         padding: 20px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
         margin-bottom: 15px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s;
     }
 
-    .card h2 {
-        color: #1DA1F2;
-        margin-bottom: 15px;
-        font-size: 1.2em;
+    .card:hover {
+        border-color: rgba(0, 212, 255, 0.5);
+        box-shadow: 0 8px 32px rgba(0, 212, 255, 0.2);
+    }
+
+    .card-header {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 10px;
+        margin-bottom: 15px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(124, 58, 237, 0.2);
     }
 
-    .icon {
-        width: 24px;
-        height: 24px;
-        flex-shrink: 0;
+    .card-icon {
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #7c3aed 0%, #00d4ff 100%);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .card-title {
+        font-size: 1.1em;
+        font-weight: 700;
+        background: linear-gradient(135deg, #fff 0%, #00d4ff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 
     .input-group {
         margin-bottom: 15px;
     }
 
-    .input-group label {
+    .input-label {
         display: block;
         margin-bottom: 8px;
-        color: #333;
+        color: #94a3b8;
+        font-size: 0.9em;
         font-weight: 600;
-        font-size: 0.95em;
+    }
+
+    textarea, input[type="text"] {
+        width: 100%;
+        padding: 12px 15px;
+        background: rgba(30, 41, 59, 0.5);
+        border: 2px solid rgba(124, 58, 237, 0.3);
+        border-radius: 12px;
+        color: #fff;
+        font-size: 15px;
+        font-family: inherit;
+        transition: all 0.3s;
     }
 
     textarea {
-        width: 100%;
-        padding: 12px;
-        border: 2px solid #e1e8ed;
-        border-radius: 12px;
-        font-size: 16px;
-        font-family: inherit;
-        resize: vertical;
-        transition: border-color 0.3s;
         min-height: 100px;
+        resize: vertical;
     }
 
-    textarea:focus {
+    textarea:focus, input[type="text"]:focus {
         outline: none;
-        border-color: #1DA1F2;
+        border-color: #00d4ff;
+        background: rgba(30, 41, 59, 0.8);
+        box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
     }
 
-    input[type="text"] {
-        width: 100%;
-        padding: 12px;
-        border: 2px solid #e1e8ed;
-        border-radius: 12px;
-        font-size: 16px;
-        transition: border-color 0.3s;
-    }
-
-    input[type="text"]:focus {
-        outline: none;
-        border-color: #1DA1F2;
+    textarea::placeholder, input[type="text"]::placeholder {
+        color: #475569;
     }
 
     .char-count {
         text-align: right;
-        color: #657786;
-        font-size: 13px;
+        color: #64748b;
+        font-size: 12px;
         margin-top: 5px;
-    }
-
-    .char-count.warning {
-        color: #FFAD1F;
         font-weight: 600;
     }
 
-    .char-count.error {
-        color: #E0245E;
-        font-weight: 600;
-    }
+    .char-count.warning { color: #fbbf24; }
+    .char-count.error { color: #ef4444; }
 
     .btn {
-        background: linear-gradient(135deg, #1DA1F2 0%, #0d8bd9 100%);
-        color: white;
+        width: 100%;
+        padding: 14px 20px;
+        background: linear-gradient(135deg, #7c3aed 0%, #00d4ff 100%);
         border: none;
-        padding: 14px 24px;
         border-radius: 12px;
-        font-size: 16px;
+        color: #fff;
+        font-size: 15px;
         font-weight: 700;
         cursor: pointer;
-        width: 100%;
-        transition: transform 0.2s, box-shadow 0.2s;
         display: flex;
         align-items: center;
         justify-content: center;
         gap: 8px;
+        transition: all 0.3s;
+        box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
     }
 
     .btn:hover:not(:disabled) {
         transform: translateY(-2px);
-        box-shadow: 0 5px 20px rgba(29, 161, 242, 0.4);
+        box-shadow: 0 6px 30px rgba(0, 212, 255, 0.6);
     }
 
     .btn:active:not(:disabled) {
@@ -165,16 +226,16 @@
     }
 
     .btn:disabled {
-        opacity: 0.6;
+        opacity: 0.5;
         cursor: not-allowed;
     }
 
     .btn-success {
-        background: linear-gradient(135deg, #17BF63 0%, #14a854 100%);
+        background: linear-gradient(135deg, #10b981 0%, #00d4ff 100%);
     }
 
     .btn-secondary {
-        background: linear-gradient(135deg, #657786 0%, #4a5c6a 100%);
+        background: linear-gradient(135deg, #64748b 0%, #475569 100%);
     }
 
     .metrics {
@@ -185,141 +246,158 @@
     }
 
     .metric-card {
-        background: linear-gradient(135deg, #f5f8fa 0%, #e1e8ed 100%);
-        padding: 12px 8px;
+        background: rgba(30, 41, 59, 0.5);
+        border: 1px solid rgba(124, 58, 237, 0.3);
         border-radius: 12px;
+        padding: 12px 8px;
         text-align: center;
+        transition: all 0.3s;
+    }
+
+    .metric-card:hover {
+        border-color: #00d4ff;
+        transform: translateY(-2px);
     }
 
     .metric-value {
-        font-size: 1.6em;
+        font-size: 1.8em;
         font-weight: 700;
-        color: #1DA1F2;
-        margin-bottom: 3px;
+        background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 4px;
     }
 
     .metric-label {
-        color: #657786;
+        color: #94a3b8;
         font-size: 0.75em;
+        font-weight: 600;
     }
 
     .score-circle {
-        width: 110px;
-        height: 110px;
-        margin: 15px auto;
+        width: 120px;
+        height: 120px;
+        margin: 20px auto;
         border-radius: 50%;
         background: conic-gradient(
-            #17BF63 0deg,
-            #17BF63 calc(var(--score) * 3.6deg),
-            #e1e8ed calc(var(--score) * 3.6deg)
+            #00d4ff 0deg,
+            #00d4ff calc(var(--score) * 3.6deg),
+            rgba(30, 41, 59, 0.5) calc(var(--score) * 3.6deg)
         );
         display: flex;
         align-items: center;
         justify-content: center;
         position: relative;
+        box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
     }
 
     .score-circle::before {
         content: '';
-        width: 88px;
-        height: 88px;
-        background: white;
+        width: 95px;
+        height: 95px;
+        background: #0f172a;
         border-radius: 50%;
         position: absolute;
     }
 
     .score-text {
-        font-size: 1.8em;
+        font-size: 2.2em;
         font-weight: 700;
-        color: #1DA1F2;
+        background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
         z-index: 1;
     }
 
     .suggestions {
-        background: #f5f8fa;
-        padding: 15px;
+        background: rgba(30, 41, 59, 0.3);
+        border: 1px solid rgba(124, 58, 237, 0.2);
         border-radius: 12px;
+        padding: 15px;
         margin-top: 15px;
     }
 
+    .suggestions-title {
+        color: #00d4ff;
+        font-size: 0.95em;
+        font-weight: 700;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
     .suggestion-item {
-        background: white;
-        padding: 12px;
+        background: rgba(15, 23, 42, 0.6);
+        border-left: 3px solid #7c3aed;
         border-radius: 8px;
+        padding: 10px 12px;
         margin-bottom: 8px;
-        border-left: 4px solid #1DA1F2;
+        font-size: 0.88em;
+        color: #cbd5e1;
+        line-height: 1.5;
     }
 
     .suggestion-item:last-child {
         margin-bottom: 0;
     }
 
-    .suggestion-title {
-        font-weight: 700;
-        color: #1DA1F2;
-        margin-bottom: 5px;
-        font-size: 0.9em;
-    }
-
-    .suggestion-text {
-        font-size: 0.88em;
-        color: #333;
-        line-height: 1.4;
-    }
-
     .alert {
-        padding: 12px;
+        padding: 12px 15px;
         border-radius: 12px;
         margin-bottom: 15px;
         font-size: 0.88em;
+        border-left: 4px solid;
     }
 
     .alert-info {
-        background: #E8F5FE;
-        border: 2px solid #1DA1F2;
-        color: #0d8bd9;
+        background: rgba(0, 212, 255, 0.1);
+        border-color: #00d4ff;
+        color: #7dd3fc;
     }
 
     .alert-success {
-        background: #E6F9F0;
-        border: 2px solid #17BF63;
-        color: #14a854;
+        background: rgba(16, 185, 129, 0.1);
+        border-color: #10b981;
+        color: #6ee7b7;
     }
 
     .alert-warning {
-        background: #FFF6E5;
-        border: 2px solid #FFAD1F;
-        color: #e09600;
+        background: rgba(251, 191, 36, 0.1);
+        border-color: #fbbf24;
+        color: #fcd34d;
     }
 
     .alert-danger {
-        background: #FCE8EC;
-        border: 2px solid #E0245E;
-        color: #c91d4f;
+        background: rgba(239, 68, 68, 0.1);
+        border-color: #ef4444;
+        color: #fca5a5;
     }
 
     .tabs {
         display: flex;
         gap: 5px;
         margin-bottom: 15px;
-        border-bottom: 2px solid #e1e8ed;
+        border-bottom: 2px solid rgba(124, 58, 237, 0.3);
     }
 
     .tab {
-        padding: 8px 14px;
+        padding: 10px 16px;
         background: none;
         border: none;
         border-bottom: 3px solid transparent;
-        color: #657786;
+        color: #64748b;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s;
-        font-size: 0.85em;
+        font-size: 0.9em;
     }
 
     .tab.active {
-        color: #1DA1F2;
-        border-bottom-color: #1DA1F2;
+        color: #00d4ff;
+        border-bottom-color: #00d4ff;
     }
 
     .tab-content {
@@ -337,12 +415,13 @@
     }
 
     .spinner {
-        border: 3px solid #f3f3f3;
-        border-top: 3px solid #1DA1F2;
+        border: 3px solid rgba(124, 58, 237, 0.3);
+        border-top: 3px solid #00d4ff;
         border-radius: 50%;
-        width: 30px;
-        height: 30px;
+        width: 40px;
+        height: 40px;
         animation: spin 1s linear infinite;
+        margin: 0 auto;
     }
 
     @keyframes spin {
@@ -351,37 +430,32 @@
     }
 
     .loading-text {
-        color: #657786;
-        margin-top: 10px;
+        color: #94a3b8;
+        margin-top: 12px;
         font-size: 0.9em;
+        text-align: center;
     }
 
     @media (max-width: 600px) {
-        .header h1 {
-            font-size: 1.4em;
-        }
-        
-        .card {
-            padding: 15px;
-            border-radius: 12px;
+        .header {
+            padding: 12px 15px;
         }
 
-        .card h2 {
+        .logo-text h1 {
             font-size: 1.1em;
         }
 
-        textarea {
-            min-height: 90px;
-            font-size: 15px;
+        .creator-badge {
+            font-size: 0.65em;
+            padding: 3px 10px;
         }
 
-        .metric-value {
-            font-size: 1.4em;
+        .content {
+            padding: 10px;
         }
 
-        .btn {
-            padding: 12px 20px;
-            font-size: 15px;
+        .card {
+            padding: 15px;
         }
     }
 </style>
@@ -389,123 +463,126 @@
 
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>
-                🚀 X 推特优化器
-            </h1>
-            <div class="subtitle">基于 X Algorithm 智能优化</div>
-            <div class="creator">由币世王创建</div>
-        </div>
+    <div class="bg-animation"></div>
 
 ```
-    <!-- 推文优化 -->
-    <div class="card">
-        <h2>
-            <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M23.643 4.937c-.835.37-1.732.62-2.675.733.962-.576 1.7-1.49 2.048-2.578-.9.534-1.897.922-2.958 1.13-.85-.904-2.06-1.47-3.4-1.47-2.572 0-4.658 2.086-4.658 4.66 0 .364.042.718.12 1.06-3.873-.195-7.304-2.05-9.602-4.868-.4.69-.63 1.49-.63 2.342 0 1.616.823 3.043 2.072 3.878-.764-.025-1.482-.234-2.11-.583v.06c0 2.257 1.605 4.14 3.737 4.568-.392.106-.803.162-1.227.162-.3 0-.593-.028-.877-.082.593 1.85 2.313 3.198 4.352 3.234-1.595 1.25-3.604 1.995-5.786 1.995-.376 0-.747-.022-1.112-.065 2.062 1.323 4.51 2.093 7.14 2.093 8.57 0 13.255-7.098 13.255-13.254 0-.2-.005-.402-.014-.602.91-.658 1.7-1.477 2.323-2.41z"/>
-            </svg>
-            推文优化
-        </h2>
-
-        <div class="input-group">
-            <label for="tweetInput">输入你的推文内容:</label>
-            <textarea id="tweetInput" placeholder="在这里输入你想发布的推文内容..."></textarea>
-            <div class="char-count" id="charCount">0 / 280</div>
+<div class="container">
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">🚀</div>
+                <div class="logo-text">
+                    <h1>X 推特优化器</h1>
+                    <div class="subtitle">AI-Powered Optimizer</div>
+                </div>
+            </div>
+            <div class="creator-badge">币世王</div>
         </div>
-
-        <button class="btn" id="analyzeBtn" onclick="analyzeTweet()">
-            🔍 分析并优化
-        </button>
-
-        <div id="optimizationResults"></div>
     </div>
 
-    <!-- 账号健康诊断 -->
-    <div class="card">
-        <h2>
-            <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
-            账号健康诊断
-        </h2>
+    <div class="content">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">✨</div>
+                <div class="card-title">推文优化</div>
+            </div>
 
-        <div class="alert alert-info">
-            💡 基于 X Algorithm 分析账号表现
-        </div>
-
-        <div class="input-group">
-            <label for="xUsername">你的 X 用户名:</label>
-            <input type="text" id="xUsername" placeholder="@your_username">
-        </div>
-
-        <button class="btn" id="diagnoseBtn" onclick="diagnoseAccount()">
-            🏥 诊断账号健康度
-        </button>
-
-        <div id="healthResults"></div>
-    </div>
-
-    <!-- 优化结果预览 -->
-    <div class="card" id="previewCard" style="display: none;">
-        <h2>
-            <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-            </svg>
-            优化结果
-        </h2>
-
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('original')">原始</button>
-            <button class="tab" onclick="switchTab('optimized')">优化</button>
-            <button class="tab" onclick="switchTab('comparison')">对比</button>
-        </div>
-
-        <div class="tab-content active" id="originalTab">
             <div class="input-group">
-                <label>原始推文:</label>
-                <textarea id="originalTweet" readonly style="background: #f5f8fa;"></textarea>
+                <label class="input-label">输入你的推文内容</label>
+                <textarea id="tweetInput" placeholder="在这里输入你想发布的推文内容..."></textarea>
+                <div class="char-count" id="charCount">0 / 280</div>
             </div>
+
+            <button class="btn" id="analyzeBtn" onclick="analyzeTweet()">
+                <span>🔍</span>
+                <span>分析并优化</span>
+            </button>
+
+            <div id="optimizationResults"></div>
         </div>
 
-        <div class="tab-content" id="optimizedTab">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">🏥</div>
+                <div class="card-title">账号健康诊断</div>
+            </div>
+
+            <div class="alert alert-info">
+                💡 基于 X Algorithm 分析账号表现
+            </div>
+
             <div class="input-group">
-                <label>优化后的推文:</label>
-                <textarea id="optimizedTweet"></textarea>
-                <div class="char-count" id="optimizedCharCount">0 / 280</div>
+                <label class="input-label">你的 X 用户名</label>
+                <input type="text" id="xUsername" placeholder="@your_username">
             </div>
+
+            <button class="btn" id="diagnoseBtn" onclick="diagnoseAccount()">
+                <span>🔬</span>
+                <span>诊断账号健康度</span>
+            </button>
+
+            <div id="healthResults"></div>
         </div>
 
-        <div class="tab-content" id="comparisonTab">
-            <div class="metrics">
-                <div class="metric-card">
-                    <div class="metric-value" id="engagementScore">0%</div>
-                    <div class="metric-label">互动率</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value" id="viralScore">0%</div>
-                    <div class="metric-label">传播力</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value" id="qualityScore">0%</div>
-                    <div class="metric-label">质量分</div>
+        <div class="card" id="previewCard" style="display: none;">
+            <div class="card-header">
+                <div class="card-icon">📊</div>
+                <div class="card-title">优化结果</div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('original')">原始</button>
+                <button class="tab" onclick="switchTab('optimized')">优化</button>
+                <button class="tab" onclick="switchTab('comparison')">对比</button>
+            </div>
+
+            <div class="tab-content active" id="originalTab">
+                <div class="input-group">
+                    <label class="input-label">原始推文</label>
+                    <textarea id="originalTweet" readonly style="background: rgba(30, 41, 59, 0.3);"></textarea>
                 </div>
             </div>
-        </div>
 
-        <div class="btn-group">
-            <button class="btn btn-success" onclick="postToTwitter()" style="flex: 2;">
-                🚀 发布到 X
-            </button>
-            <button class="btn btn-secondary" onclick="copyToClipboard()" style="flex: 1;">
-                📋 复制
-            </button>
+            <div class="tab-content" id="optimizedTab">
+                <div class="input-group">
+                    <label class="input-label">优化后的推文</label>
+                    <textarea id="optimizedTweet"></textarea>
+                    <div class="char-count" id="optimizedCharCount">0 / 280</div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="comparisonTab">
+                <div class="metrics">
+                    <div class="metric-card">
+                        <div class="metric-value" id="engagementScore">0%</div>
+                        <div class="metric-label">互动率</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="viralScore">0%</div>
+                        <div class="metric-label">传播力</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="qualityScore">0%</div>
+                        <div class="metric-label">质量分</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn btn-success" onclick="postToTwitter()" style="flex: 2;">
+                    <span>🚀</span>
+                    <span>发布到 X</span>
+                </button>
+                <button class="btn btn-secondary" onclick="copyToClipboard()" style="flex: 1;">
+                    <span>📋</span>
+                    <span>复制</span>
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    // 字符计数
     const tweetInput = document.getElementById('tweetInput');
     const charCount = document.getElementById('charCount');
 
@@ -526,7 +603,6 @@
         }
     }
 
-    // 优化后推文字符计数
     const optimizedTweet = document.getElementById('optimizedTweet');
     const optimizedCharCount = document.getElementById('optimizedCharCount');
 
@@ -545,7 +621,6 @@
         }
     });
 
-    // 分析推文
     function analyzeTweet() {
         const tweet = tweetInput.value.trim();
         
@@ -571,7 +646,6 @@
         }, 1200);
     }
 
-    // 基于 X Algorithm 的分析
     function analyzeWithAlgorithm(tweet) {
         let engagement_score = 50;
         let viral_potential = 50;
@@ -579,7 +653,6 @@
         let suggestions = [];
         let optimized = tweet;
 
-        // 长度分析
         if (tweet.length < 50) {
             suggestions.push("推文太短，建议80-180字符提高互动");
             quality_score -= 15;
@@ -590,7 +663,6 @@
             engagement_score += 15;
         }
 
-        // 问题检测
         if (tweet.includes('?') || tweet.includes('？')) {
             engagement_score += 20;
             viral_potential += 15;
@@ -599,7 +671,6 @@
             suggestions.push("添加问题可鼓励用户回复讨论");
         }
 
-        // Emoji检测
         const emojiRegex = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
         if (emojiRegex.test(tweet)) {
             engagement_score += 10;
@@ -609,7 +680,6 @@
             suggestions.push("添加相关emoji提高吸引力");
         }
 
-        // 话题标签
         if (tweet.includes('#')) {
             const hashtagCount = (tweet.match(/#/g) || []).length;
             if (hashtagCount <= 3) {
@@ -624,20 +694,17 @@
             suggestions.push("添加1-2个话题标签扩大受众");
         }
 
-        // @提及
         if (tweet.includes('@')) {
             engagement_score += 10;
             suggestions.push("✅ @提及有助于互动");
         }
 
-        // 链接
         if (tweet.includes('http')) {
             engagement_score += 5;
             quality_score += 10;
             suggestions.push("✅ 包含链接提供更多价值");
         }
 
-        // 生成优化版本
         let optimizedParts = [];
         
         if (!emojiRegex.test(tweet)) {
@@ -691,11 +758,9 @@
             </div>
 
             <div class="suggestions">
-                <h3 style="margin-bottom: 12px; color: #1DA1F2; font-size: 1em;">💡 优化建议</h3>
+                <div class="suggestions-title">💡 优化建议</div>
                 ${result.suggestions.map(s => `
-                    <div class="suggestion-item">
-                        <div class="suggestion-text">${s}</div>
-                    </div>
+                    <div class="suggestion-item">${s}</div>
                 `).join('')}
             </div>
         `;
@@ -715,7 +780,6 @@
         }, 100);
     }
 
-    // 诊断账号
     function diagnoseAccount() {
         const username = document.getElementById('xUsername').value.trim().replace('@', '');
         
@@ -775,19 +839,19 @@
 
             <div class="metrics">
                 <div class="metric-card">
-                    <div class="metric-value" style="color: ${result.spam_probability > 30 ? '#E0245E' : '#17BF63'}">
+                    <div class="metric-value" style="${result.spam_probability > 30 ? 'color: #ef4444;' : ''}">
                         ${result.spam_probability}%
                     </div>
                     <div class="metric-label">垃圾概率</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-value" style="color: ${result.social_toxicity > 30 ? '#E0245E' : '#17BF63'}">
+                    <div class="metric-value" style="${result.social_toxicity > 30 ? 'color: #ef4444;' : ''}">
                         ${result.social_toxicity}%
                     </div>
                     <div class="metric-label">社交毒性</div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-value" style="color: ${result.shadowban_risk > 30 ? '#E0245E' : '#17BF63'}">
+                    <div class="metric-value" style="${result.shadowban_risk > 30 ? 'color: #ef4444;' : ''}">
                         ${result.shadowban_risk}%
                     </div>
                     <div class="metric-label">封禁风险</div>
@@ -795,11 +859,10 @@
             </div>
 
             <div class="suggestions">
-                <h3 style="margin-bottom: 12px; color: #1DA1F2; font-size: 1em;">🔧 改进建议</h3>
+                <div class="suggestions-title">🔧 改进建议</div>
                 ${result.actions.map((action, index) => `
                     <div class="suggestion-item">
-                        <div class="suggestion-title">行动 ${index + 1}</div>
-                        <div class="suggestion-text">${action}</div>
+                        <strong>行动 ${index + 1}:</strong> ${action}
                     </div>
                 `).join('')}
             </div>
@@ -818,7 +881,6 @@
         return '危险 🚨';
     }
 
-    // 切换标签
     function switchTab(tabName) {
         const tabs = document.querySelectorAll('.tab');
         const contents = document.querySelectorAll('.tab-content');
@@ -830,7 +892,6 @@
         document.getElementById(tabName + 'Tab').classList.add('active');
     }
 
-    // 发布到 Twitter
     function postToTwitter() {
         const tweet = document.getElementById('optimizedTweet').value.trim();
         
@@ -848,7 +909,6 @@
         window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank', 'width=550,height=420');
     }
 
-    // 复制到剪贴板
     function copyToClipboard() {
         const tweet = document.getElementById('optimizedTweet').value;
         
@@ -884,7 +944,6 @@
         document.body.removeChild(textarea);
     }
 
-    // 显示提示
     function showAlert(containerId, message, type) {
         const container = document.getElementById(containerId);
         container.innerHTML = `
@@ -894,7 +953,6 @@
         `;
     }
 
-    // 显示加载
     function showLoading(containerId, message) {
         const container = document.getElementById(containerId);
         container.innerHTML = `

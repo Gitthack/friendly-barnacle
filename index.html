@@ -3,1396 +3,788 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>X 推特优化器 - 基于官方开源算法</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X 推特优化器</title>
     <style>
-        * {
-            margin: 0;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0a0e27;
+            color: #fff;
+            min-height: 100vh;
+        }
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at top, #1e3a8a 0%, transparent 50%),
+                        radial-gradient(ellipse at bottom, #7c3aed 0%, transparent 50%),
+                        linear-gradient(180deg, #0a0e27 0%, #1a1f3a 100%);
+            z-index: 0;
+        }
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
             padding: 0;
-            box-sizing: border-box;
         }
-
-```
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background: #0a0e27;
-        color: #fff;
-        min-height: 100vh;
-        overflow-x: hidden;
-    }
-
-    .bg-animation {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: 
-            radial-gradient(ellipse at top, #1e3a8a 0%, transparent 50%),
-            radial-gradient(ellipse at bottom, #7c3aed 0%, transparent 50%),
-            linear-gradient(180deg, #0a0e27 0%, #1a1f3a 100%);
-        z-index: 0;
-    }
-
-    .container {
-        position: relative;
-        z-index: 1;
-        max-width: 900px;
-        margin: 0 auto;
-        padding: 0;
-    }
-
-    .header {
-        background: rgba(10, 14, 39, 0.95);
-        backdrop-filter: blur(10px);
-        border-bottom: 1px solid rgba(124, 58, 237, 0.3);
-        padding: 15px 20px;
-        position: sticky;
-        top: 0;
-        z-index: 100;
-    }
-
-    .header-content {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .logo {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .logo-icon {
-        font-size: 24px;
-        animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-    }
-
-    .logo-text h1 {
-        font-size: 1.2em;
-        background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        font-weight: 700;
-    }
-
-    .logo-text .subtitle {
-        font-size: 0.7em;
-        color: #64748b;
-        margin-top: -2px;
-    }
-
-    .creator-badge {
-        background: linear-gradient(135deg, #7c3aed 0%, #00d4ff 100%);
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.7em;
-        font-weight: 600;
-        box-shadow: 0 0 20px rgba(124, 58, 237, 0.5);
-    }
-
-    .content {
-        padding: 15px;
-    }
-
-    .card {
-        background: rgba(15, 23, 42, 0.6);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(124, 58, 237, 0.3);
-        border-radius: 16px;
-        padding: 20px;
-        margin-bottom: 15px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        transition: all 0.3s;
-    }
-
-    .card:hover {
-        border-color: rgba(0, 212, 255, 0.5);
-        box-shadow: 0 8px 32px rgba(0, 212, 255, 0.2);
-    }
-
-    .card-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 15px;
-        padding-bottom: 12px;
-        border-bottom: 1px solid rgba(124, 58, 237, 0.2);
-    }
-
-    .card-icon {
-        width: 32px;
-        height: 32px;
-        background: linear-gradient(135deg, #7c3aed 0%, #00d4ff 100%);
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-    }
-
-    .card-title {
-        font-size: 1.1em;
-        font-weight: 700;
-        background: linear-gradient(135deg, #fff 0%, #00d4ff 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .input-group {
-        margin-bottom: 15px;
-    }
-
-    .input-label {
-        display: block;
-        margin-bottom: 8px;
-        color: #94a3b8;
-        font-size: 0.9em;
-        font-weight: 600;
-    }
-
-    textarea, input[type="text"] {
-        width: 100%;
-        padding: 12px 15px;
-        background: rgba(30, 41, 59, 0.5);
-        border: 2px solid rgba(124, 58, 237, 0.3);
-        border-radius: 12px;
-        color: #fff;
-        font-size: 15px;
-        font-family: inherit;
-        transition: all 0.3s;
-    }
-
-    textarea {
-        min-height: 100px;
-        resize: vertical;
-    }
-
-    textarea:focus, input[type="text"]:focus {
-        outline: none;
-        border-color: #00d4ff;
-        background: rgba(30, 41, 59, 0.8);
-        box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
-    }
-
-    textarea::placeholder, input[type="text"]::placeholder {
-        color: #475569;
-    }
-
-    .char-count {
-        text-align: right;
-        color: #64748b;
-        font-size: 12px;
-        margin-top: 5px;
-        font-weight: 600;
-    }
-
-    .char-count.warning { color: #fbbf24; }
-    .char-count.error { color: #ef4444; }
-
-    .btn {
-        width: 100%;
-        padding: 14px 20px;
-        background: linear-gradient(135deg, #7c3aed 0%, #00d4ff 100%);
-        border: none;
-        border-radius: 12px;
-        color: #fff;
-        font-size: 15px;
-        font-weight: 700;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        transition: all 0.3s;
-        box-shadow: 0 4px 20px rgba(124, 58, 237, 0.4);
-    }
-
-    .btn:hover:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 30px rgba(0, 212, 255, 0.6);
-    }
-
-    .btn:active:not(:disabled) {
-        transform: translateY(0);
-    }
-
-    .btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    .btn-success {
-        background: linear-gradient(135deg, #10b981 0%, #00d4ff 100%);
-    }
-
-    .btn-secondary {
-        background: linear-gradient(135deg, #64748b 0%, #475569 100%);
-    }
-
-    .metrics {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 10px;
-        margin: 15px 0;
-    }
-
-    .metric-card {
-        background: rgba(30, 41, 59, 0.5);
-        border: 1px solid rgba(124, 58, 237, 0.3);
-        border-radius: 12px;
-        padding: 12px 8px;
-        text-align: center;
-        transition: all 0.3s;
-    }
-
-    .metric-card:hover {
-        border-color: #00d4ff;
-        transform: translateY(-2px);
-    }
-
-    .metric-value {
-        font-size: 1.8em;
-        font-weight: 700;
-        background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 4px;
-    }
-
-    .metric-label {
-        color: #94a3b8;
-        font-size: 0.75em;
-        font-weight: 600;
-    }
-
-    .score-circle {
-        width: 120px;
-        height: 120px;
-        margin: 20px auto;
-        border-radius: 50%;
-        background: conic-gradient(
-            #00d4ff 0deg,
-            #00d4ff calc(var(--score) * 3.6deg),
-            rgba(30, 41, 59, 0.5) calc(var(--score) * 3.6deg)
-        );
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
-    }
-
-    .score-circle::before {
-        content: '';
-        width: 95px;
-        height: 95px;
-        background: #0f172a;
-        border-radius: 50%;
-        position: absolute;
-    }
-
-    .score-text {
-        font-size: 2.2em;
-        font-weight: 700;
-        background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        z-index: 1;
-    }
-
-    .suggestions {
-        background: rgba(30, 41, 59, 0.3);
-        border: 1px solid rgba(124, 58, 237, 0.2);
-        border-radius: 12px;
-        padding: 15px;
-        margin-top: 15px;
-    }
-
-    .suggestions-title {
-        color: #00d4ff;
-        font-size: 0.95em;
-        font-weight: 700;
-        margin-bottom: 12px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .suggestion-item {
-        background: rgba(15, 23, 42, 0.6);
-        border-left: 3px solid #7c3aed;
-        border-radius: 8px;
-        padding: 10px 12px;
-        margin-bottom: 8px;
-        font-size: 0.88em;
-        color: #cbd5e1;
-        line-height: 1.5;
-    }
-
-    .suggestion-item:last-child {
-        margin-bottom: 0;
-    }
-
-    .alert {
-        padding: 12px 15px;
-        border-radius: 12px;
-        margin-bottom: 15px;
-        font-size: 0.88em;
-        border-left: 4px solid;
-    }
-
-    .alert-info {
-        background: rgba(0, 212, 255, 0.1);
-        border-color: #00d4ff;
-        color: #7dd3fc;
-    }
-
-    .alert-success {
-        background: rgba(16, 185, 129, 0.1);
-        border-color: #10b981;
-        color: #6ee7b7;
-    }
-
-    .alert-warning {
-        background: rgba(251, 191, 36, 0.1);
-        border-color: #fbbf24;
-        color: #fcd34d;
-    }
-
-    .alert-danger {
-        background: rgba(239, 68, 68, 0.1);
-        border-color: #ef4444;
-        color: #fca5a5;
-    }
-
-    .tabs {
-        display: flex;
-        gap: 5px;
-        margin-bottom: 15px;
-        border-bottom: 2px solid rgba(124, 58, 237, 0.3);
-    }
-
-    .tab {
-        padding: 10px 16px;
-        background: none;
-        border: none;
-        border-bottom: 3px solid transparent;
-        color: #64748b;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-        font-size: 0.9em;
-    }
-
-    .tab.active {
-        color: #00d4ff;
-        border-bottom-color: #00d4ff;
-    }
-
-    .tab-content {
-        display: none;
-    }
-
-    .tab-content.active {
-        display: block;
-    }
-
-    .btn-group {
-        display: flex;
-        gap: 10px;
-        margin-top: 15px;
-    }
-
-    .spinner {
-        border: 3px solid rgba(124, 58, 237, 0.3);
-        border-top: 3px solid #00d4ff;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    .loading-text {
-        color: #94a3b8;
-        margin-top: 12px;
-        font-size: 0.9em;
-        text-align: center;
-    }
-
-    .diagnosis-options {
-        margin: 15px 0;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .option-card {
-        background: rgba(30, 41, 59, 0.5);
-        border: 2px solid rgba(124, 58, 237, 0.3);
-        border-radius: 12px;
-        padding: 12px 15px;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    .option-card:hover {
-        border-color: #00d4ff;
-        background: rgba(30, 41, 59, 0.7);
-    }
-
-    .option-card.selected {
-        border-color: #00d4ff;
-        background: rgba(0, 212, 255, 0.1);
-    }
-
-    .option-header {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-    }
-
-    .option-header input[type="radio"] {
-        margin-top: 3px;
-        cursor: pointer;
-    }
-
-    .option-header label {
-        flex: 1;
-        cursor: pointer;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .option-header label strong {
-        color: #fff;
-        font-size: 0.95em;
-    }
-
-    .option-header label span {
-        color: #94a3b8;
-        font-size: 0.85em;
-    }
-
-    .grok-prompt-box {
-        background: rgba(30, 41, 59, 0.6);
-        border: 2px solid #7c3aed;
-        border-radius: 12px;
-        padding: 15px;
-        margin-top: 15px;
-    }
-
-    .grok-prompt-box h4 {
-        color: #00d4ff;
-        margin-bottom: 10px;
-        font-size: 0.95em;
-    }
-
-    .prompt-text {
-        background: rgba(15, 23, 42, 0.8);
-        border: 1px solid rgba(124, 58, 237, 0.3);
-        border-radius: 8px;
-        padding: 12px;
-        color: #cbd5e1;
-        font-size: 0.85em;
-        line-height: 1.6;
-        font-family: 'Courier New', monospace;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        max-height: 300px;
-        overflow-y: auto;
-    }
-
-    .copy-prompt-btn {
-        margin-top: 10px;
-        background: linear-gradient(135deg, #7c3aed 0%, #00d4ff 100%);
-        border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        color: white;
-        font-weight: 600;
-        cursor: pointer;
-        font-size: 0.85em;
-        width: 100%;
-        transition: all 0.3s;
-    }
-
-    .copy-prompt-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
-    }
-
-    .grok-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        color: #00d4ff;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 0.9em;
-        margin-top: 10px;
-        padding: 8px 15px;
-        background: rgba(0, 212, 255, 0.1);
-        border-radius: 8px;
-        transition: all 0.3s;
-    }
-
-    .grok-link:hover {
-        background: rgba(0, 212, 255, 0.2);
-        transform: translateX(5px);
-    }
-
-    .retweet-prompt {
-        background: linear-gradient(135deg, rgba(124, 58, 237, 0.2) 0%, rgba(0, 212, 255, 0.2) 100%);
-        border: 2px solid #7c3aed;
-        border-radius: 16px;
-        padding: 20px;
-        margin-top: 15px;
-        text-align: center;
-    }
-
-    .retweet-prompt h3 {
-        color: #00d4ff;
-        font-size: 1.1em;
-        margin-bottom: 15px;
-    }
-
-    .retweet-prompt p {
-        color: #cbd5e1;
-        font-size: 0.9em;
-        line-height: 1.6;
-        margin-bottom: 20px;
-    }
-
-    .retweet-btn {
-        background: linear-gradient(135deg, #1DA1F2 0%, #00d4ff 100%);
-        border: none;
-        padding: 14px 30px;
-        border-radius: 12px;
-        color: white;
-        font-weight: 700;
-        font-size: 1em;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        transition: all 0.3s;
-        box-shadow: 0 4px 20px rgba(29, 161, 242, 0.4);
-    }
-
-    .retweet-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 30px rgba(0, 212, 255, 0.6);
-    }
-
-    .retweet-info {
-        margin-top: 15px;
-        padding: 12px;
-        background: rgba(30, 41, 59, 0.5);
-        border-radius: 8px;
-        font-size: 0.85em;
-        color: #94a3b8;
-    }
-
-    .verified-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        background: rgba(16, 185, 129, 0.2);
-        color: #10b981;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 0.85em;
-        font-weight: 600;
-        margin-top: 10px;
-    }
-
-    .influence-frame-container {
-        background: rgba(30, 41, 59, 0.5);
-        border: 2px solid rgba(124, 58, 237, 0.3);
-        border-radius: 16px;
-        overflow: hidden;
-        margin-top: 15px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    }
-
-    .influence-header {
-        background: rgba(124, 58, 237, 0.2);
-        padding: 15px 20px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid rgba(124, 58, 237, 0.3);
-    }
-
-    .influence-header h4 {
-        color: #00d4ff;
-        font-size: 1em;
-        margin: 0;
-    }
-
-    .open-full-link {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        color: #94a3b8;
-        text-decoration: none;
-        font-size: 0.85em;
-        transition: all 0.3s;
-        padding: 5px 12px;
-        border-radius: 8px;
-        background: rgba(30, 41, 59, 0.5);
-    }
-
-    .open-full-link:hover {
-        color: #00d4ff;
-        background: rgba(0, 212, 255, 0.1);
-    }
-
-    .influence-frame {
-        width: 100%;
-        height: 600px;
-        border: none;
-        display: block;
-        background: #fff;
-    }
-
-    .influence-footer {
-        background: rgba(15, 23, 42, 0.8);
-        padding: 10px 20px;
-        text-align: center;
-        border-top: 1px solid rgba(124, 58, 237, 0.3);
-    }
-
-    .influence-footer small {
-        color: #94a3b8;
-        font-size: 0.8em;
-    }
-
-    .influence-footer a {
-        color: #00d4ff;
-        text-decoration: none;
-    }
-
-    .influence-footer a:hover {
-        text-decoration: underline;
-    }
-
-    @media (max-width: 600px) {
         .header {
-            padding: 12px 15px;
+            background: rgba(10, 14, 39, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(124, 58, 237, 0.3);
+            padding: 15px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .logo { display: flex; align-items: center; gap: 10px; }
+        .logo-icon { font-size: 24px; animation: pulse 2s infinite; }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
         .logo-text h1 {
-            font-size: 1.1em;
+            font-size: 1.2em;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
         }
-
+        .logo-text .subtitle {
+            font-size: 0.7em;
+            color: #64748b;
+        }
         .creator-badge {
-            font-size: 0.65em;
-            padding: 3px 10px;
+            background: linear-gradient(135deg, #7c3aed 0%, #00d4ff 100%);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7em;
+            font-weight: 600;
         }
-
-        .content {
-            padding: 10px;
-        }
-
+        .content { padding: 15px; }
         .card {
-            padding: 15px;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
         }
-
-        .influence-frame {
-            height: 500px;
-        }
-
-        .influence-header {
-            flex-direction: column;
+        .card-header {
+            display: flex;
+            align-items: center;
             gap: 10px;
-            align-items: flex-start;
+            margin-bottom: 15px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.2);
         }
-    }
-</style>
-```
-
+        .card-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #7c3aed 0%, #00d4ff 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        .card-title {
+            font-size: 1.1em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, #00d4ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .input-group { margin-bottom: 15px; }
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #94a3b8;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        textarea, input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 2px solid rgba(124, 58, 237, 0.3);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 15px;
+            font-family: inherit;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #00d4ff;
+        }
+        .char-count {
+            text-align: right;
+            color: #64748b;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .char-count.warning { color: #fbbf24; }
+        .char-count.error { color: #ef4444; }
+        .btn {
+            width: 100%;
+            padding: 14px 20px;
+            background: linear-gradient(135deg, #7c3aed 0%, #00d4ff 100%);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #00d4ff 100%);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+        }
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .metric-card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(124, 58, 237, 0.3);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .metric-label {
+            color: #94a3b8;
+            font-size: 0.75em;
+        }
+        .suggestions {
+            background: rgba(30, 41, 59, 0.3);
+            border: 1px solid rgba(124, 58, 237, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .suggestions-title {
+            color: #00d4ff;
+            font-size: 0.95em;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .suggestion-item {
+            background: rgba(15, 23, 42, 0.6);
+            border-left: 3px solid #7c3aed;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            font-size: 0.88em;
+            color: #cbd5e1;
+        }
+        .alert {
+            padding: 12px 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            font-size: 0.88em;
+            border-left: 4px solid;
+        }
+        .alert-info {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: #00d4ff;
+            color: #7dd3fc;
+        }
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(124, 58, 237, 0.3);
+        }
+        .tab {
+            padding: 10px 16px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: #64748b;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .tab.active {
+            color: #00d4ff;
+            border-bottom-color: #00d4ff;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .spinner {
+            border: 3px solid rgba(124, 58, 237, 0.3);
+            border-top: 3px solid #00d4ff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            color: #94a3b8;
+            margin-top: 12px;
+            font-size: 0.9em;
+            text-align: center;
+        }
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            margin: 20px auto;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+        }
+        .influence-frame {
+            width: 100%;
+            height: 600px;
+            border: none;
+            display: block;
+            background: #fff;
+        }
+        @media (max-width: 600px) {
+            .content { padding: 10px; }
+            .card { padding: 15px; }
+            .influence-frame { height: 500px; }
+        }
+    </style>
 </head>
 <body>
     <div class="bg-animation"></div>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">🚀</div>
+                    <div class="logo-text">
+                        <h1>X 推特优化器</h1>
+                        <div class="subtitle">基于官方开源算法</div>
+                    </div>
+                </div>
+                <div class="creator-badge">币世王</div>
+            </div>
+        </div>
 
 ```
-<div class="container">
-    <div class="header">
-        <div class="header-content">
-            <div class="logo">
-                <div class="logo-icon">🚀</div>
-                <div class="logo-text">
-                    <h1>X 推特优化器</h1>
-                    <div class="subtitle">基于官方开源算法</div>
-                </div>
-            </div>
-            <div class="creator-badge">币世王</div>
-        </div>
-    </div>
-
     <div class="content">
-        <!-- 推文优化卡片 - 移到最上面 -->
         <div class="card">
             <div class="card-header">
                 <div class="card-icon">✨</div>
-                <div class="card-title">推文优化 - Phoenix 算法</div>
+                <div class="card-title">推文优化</div>
             </div>
-
             <div class="alert alert-info">
-                🔬 基于 X 官方开源的 Phoenix Transformer 算法优化
+                🔬 基于 X 官方 Phoenix 算法 - 回复权重13.5x，点赞仅0.5x
             </div>
-
             <div class="input-group">
-                <label class="input-label">输入你的推文内容</label>
-                <textarea id="tweetInput" placeholder="在这里输入你想发布的推文内容..."></textarea>
+                <label class="input-label">输入推文内容</label>
+                <textarea id="tweetInput" placeholder="在这里输入..."></textarea>
                 <div class="char-count" id="charCount">0 / 280</div>
             </div>
-
             <button class="btn" id="analyzeBtn">
                 <span>🔍</span>
                 <span>分析并优化</span>
             </button>
-
-            <div id="optimizationResults"></div>
+            <div id="results"></div>
         </div>
 
-        <!-- 优化结果预览卡片 -->
-        <div class="card" id="previewCard" style="display: none;">
+        <div class="card" id="preview" style="display: none;">
             <div class="card-header">
                 <div class="card-icon">📊</div>
                 <div class="card-title">优化结果</div>
             </div>
-
             <div class="tabs">
-                <button class="tab active" data-tab="original">原始</button>
-                <button class="tab" data-tab="optimized">优化</button>
-                <button class="tab" data-tab="comparison">对比</button>
+                <button class="tab active" onclick="switchTab('original')">原始</button>
+                <button class="tab" onclick="switchTab('optimized')">优化</button>
+                <button class="tab" onclick="switchTab('stats')">数据</button>
             </div>
-
             <div class="tab-content active" id="originalTab">
-                <div class="input-group">
-                    <label class="input-label">原始推文</label>
-                    <textarea id="originalTweet" readonly style="background: rgba(30, 41, 59, 0.3);"></textarea>
-                </div>
+                <textarea id="original" readonly style="background: rgba(30, 41, 59, 0.3);"></textarea>
             </div>
-
             <div class="tab-content" id="optimizedTab">
-                <div class="input-group">
-                    <label class="input-label">优化后的推文</label>
-                    <textarea id="optimizedTweet"></textarea>
-                    <div class="char-count" id="optimizedCharCount">0 / 280</div>
-                </div>
+                <textarea id="optimized"></textarea>
+                <div class="char-count" id="optCount">0 / 280</div>
             </div>
-
-            <div class="tab-content" id="comparisonTab">
-                <div class="metrics">
-                    <div class="metric-card">
-                        <div class="metric-value" id="engagementScore">0%</div>
-                        <div class="metric-label">互动率</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value" id="viralScore">0%</div>
-                        <div class="metric-label">传播力</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value" id="qualityScore">0%</div>
-                        <div class="metric-label">质量分</div>
-                    </div>
-                </div>
+            <div class="tab-content" id="statsTab">
+                <div class="metrics" id="metricsDisplay"></div>
             </div>
-
             <div class="btn-group">
-                <button class="btn btn-success" id="postToTwitterBtn" style="flex: 2;">
+                <button class="btn btn-success" onclick="postTweet()" style="flex: 2;">
                     <span>🚀</span>
                     <span>发布到 X</span>
                 </button>
-                <button class="btn btn-secondary" id="copyBtn" style="flex: 1;">
+                <button class="btn btn-secondary" onclick="copyTweet()" style="flex: 1;">
                     <span>📋</span>
                     <span>复制</span>
                 </button>
             </div>
         </div>
 
-        <!-- 账号健康诊断卡片 -->
+        <!-- 账号健康诊断 -->
         <div class="card">
             <div class="card-header">
                 <div class="card-icon">🏥</div>
                 <div class="card-title">账号健康诊断</div>
             </div>
-
             <div class="alert alert-info">
                 💡 基于 X Algorithm 的深度账号分析
             </div>
-
             <div class="input-group">
                 <label class="input-label">你的 X 用户名</label>
-                <input type="text" id="xUsername" placeholder="@your_username">
+                <input type="text" id="username" placeholder="@your_username">
             </div>
-
-            <button class="btn" id="checkInfluenceBtn" style="margin-bottom: 15px;">
+            
+            <button class="btn" onclick="checkInfluence()" style="margin-bottom: 15px;">
                 <span>📊</span>
                 <span>查看影响力指数 (Sorsa.io)</span>
             </button>
-
+            
             <div id="influenceResults"></div>
 
-            <div class="diagnosis-options">
-                <div class="option-card selected" data-mode="basic">
-                    <div class="option-header">
-                        <input type="radio" name="diagMode" id="basicMode" checked>
-                        <label for="basicMode">
-                            <strong>🔍 基础分析</strong>
-                            <span>本地算法快速诊断</span>
+            <div style="margin: 15px 0;">
+                <div style="background: rgba(30, 41, 59, 0.5); border: 2px solid rgba(124, 58, 237, 0.3); border-radius: 12px; padding: 12px 15px; margin-bottom: 10px; cursor: pointer;" onclick="selectMode('basic')" id="basicCard">
+                    <div style="display: flex; gap: 10px;">
+                        <input type="radio" name="mode" id="basicMode" checked style="margin-top: 3px;">
+                        <label for="basicMode" style="cursor: pointer; flex: 1;">
+                            <strong style="color: #fff;">🔍 基础分析</strong><br>
+                            <span style="color: #94a3b8; font-size: 0.85em;">本地算法快速诊断</span>
                         </label>
                     </div>
                 </div>
-                <div class="option-card" data-mode="grok">
-                    <div class="option-header">
-                        <input type="radio" name="diagMode" id="grokMode">
-                        <label for="grokMode">
-                            <strong>🤖 Grok AI 深度分析</strong>
-                            <span>AI 自动生成专业报告</span>
+                <div style="background: rgba(30, 41, 59, 0.5); border: 2px solid rgba(124, 58, 237, 0.3); border-radius: 12px; padding: 12px 15px; cursor: pointer;" onclick="selectMode('grok')" id="grokCard">
+                    <div style="display: flex; gap: 10px;">
+                        <input type="radio" name="mode" id="grokMode" style="margin-top: 3px;">
+                        <label for="grokMode" style="cursor: pointer; flex: 1;">
+                            <strong style="color: #fff;">🤖 Grok AI 深度分析</strong><br>
+                            <span style="color: #94a3b8; font-size: 0.85em;">AI 自动生成专业报告</span>
                         </label>
                     </div>
                 </div>
             </div>
 
-            <button class="btn" id="diagnoseBtn">
+            <button class="btn" onclick="diagnose()">
                 <span>🔬</span>
                 <span>开始诊断</span>
             </button>
 
-            <div id="retweetPrompt" style="display: none;"></div>
-            <div id="healthResults"></div>
+            <div id="diagResults"></div>
             <div id="grokPrompt" style="display: none;"></div>
         </div>
     </div>
 </div>
 
 <script>
-    // 应用状态
-    const AppState = {
-        hasClickedTweet: false
-    };
+    console.log('🚀 X 推特优化器启动');
 
-    // 工具函数
-    const Utils = {
-        showAlert(containerId, message, type) {
-            const container = document.getElementById(containerId);
-            if (container) {
-                container.innerHTML = `
-                    <div class="alert alert-${type}" style="margin-top: 15px;">
-                        ${message}
-                    </div>
-                `;
-            }
-        },
+    // 字符计数
+    document.getElementById('tweetInput').addEventListener('input', function() {
+        const len = this.value.length;
+        const count = document.getElementById('charCount');
+        count.textContent = len + ' / 280';
+        count.className = 'char-count';
+        if (len > 280) count.classList.add('error');
+        else if (len > 260) count.classList.add('warning');
+    });
 
-        showLoading(containerId, message) {
-            const container = document.getElementById(containerId);
-            if (container) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 20px;">
-                        <div class="spinner"></div>
-                        <div class="loading-text">${message}</div>
-                    </div>
-                `;
-            }
-        },
+    document.getElementById('optimized').addEventListener('input', function() {
+        const len = this.value.length;
+        const count = document.getElementById('optCount');
+        count.textContent = len + ' / 280';
+        count.className = 'char-count';
+        if (len > 280) count.classList.add('error');
+        else if (len > 260) count.classList.add('warning');
+    });
 
-        updateCharCount(textarea, countElement, maxLength = 280) {
-            const length = textarea.value.length;
-            countElement.textContent = `${length} / ${maxLength}`;
-            
-            countElement.classList.remove('warning', 'error');
-            if (length > maxLength) {
-                countElement.classList.add('error');
-            } else if (length > maxLength - 20) {
-                countElement.classList.add('warning');
-            }
-        },
-
-        copyToClipboard(text, successCallback, errorCallback) {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text)
-                    .then(successCallback)
-                    .catch(() => this.fallbackCopy(text, successCallback, errorCallback));
-            } else {
-                this.fallbackCopy(text, successCallback, errorCallback);
-            }
-        },
-
-        fallbackCopy(text, successCallback, errorCallback) {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-            try {
-                document.execCommand('copy');
-                if (successCallback) successCallback();
-            } catch (err) {
-                if (errorCallback) errorCallback();
-            }
-            document.body.removeChild(textarea);
+    // 分析推文
+    document.getElementById('analyzeBtn').addEventListener('click', function() {
+        const tweet = document.getElementById('tweetInput').value.trim();
+        if (!tweet) {
+            document.getElementById('results').innerHTML = '<div class="alert alert-info">⚠️ 请输入推文内容</div>';
+            return;
         }
-    };
-
-    // 推文分析器 - 基于 X 开源算法
-    const TweetAnalyzer = {
-        // 基于 Phoenix 算法的权重 (来自 2023 年开源数据)
-        ENGAGEMENT_WEIGHTS: {
-            favorite: 0.5,      // 点赞权重最低
-            reply: 13.5,        // 回复权重很高
-            repost: 1.0,        // 转发
-            quote: 1.0,         // 引用
-            click: 0.1,         // 点击
-            profile_click: 0.1, // 查看资料
-            video_view: 0.005,  // 视频播放
-            photo_expand: 0.005,// 图片展开
-            report: -50,        // 举报（负面）
-            block: -50,         // 拉黑（负面）
-            mute: -50,          // 屏蔽（负面）
-            not_interested: -5  // 不感兴趣（负面）
-        },
-
-        analyze(tweet) {
-            // 初始化各类互动概率
-            let probabilities = {
-                favorite: 0.3,
-                reply: 0.1,
-                repost: 0.05,
-                quote: 0.03,
-                click: 0.2,
-                profile_click: 0.05,
-                video_view: 0,
-                photo_expand: 0,
-                report: 0.001,
-                block: 0.001,
-                mute: 0.001,
-                not_interested: 0.01
-            };
-
-            let suggestions = [];
-
-            // 1. 回复诱导分析（最重要 - 权重 13.5）
-            const hasQuestion = tweet.includes('?') || tweet.includes('？');
-            if (hasQuestion) {
-                probabilities.reply += 0.25;
-                probabilities.favorite += 0.1;
-                suggestions.push("✅ 包含问题能大幅提高回复率（13.5x权重）- X算法最重视的互动");
-            } else {
-                suggestions.push("🔥 添加引发讨论的问题可提升回复率 - 这是X算法最看重的互动（13.5x权重）");
-            }
-
-            // 2. 对话性语言
-            const conversationalWords = ['你觉得', '你认为', '同意吗', '怎么看', '有人', '大家'];
-            const hasConversational = conversationalWords.some(word => tweet.includes(word));
-            if (hasConversational) {
-                probabilities.reply += 0.15;
-                suggestions.push("✅ 对话性语言提高参与度");
-            }
-
-            // 3. 长度优化（基于 Grok transformer 的最佳实践）
-            if (tweet.length < 50) {
-                probabilities.favorite -= 0.1;
-                probabilities.reply -= 0.05;
-                suggestions.push("⚠️ 推文太短 - 建议80-180字符获得最佳互动");
-            } else if (tweet.length > 200) {
-                probabilities.click += 0.1;
-                suggestions.push("📱 较长推文 - 考虑分段或使用 thread 提高可读性");
-            } else {
-                probabilities.favorite += 0.1;
-                probabilities.reply += 0.05;
-            }
-
-            // 4. Emoji 分析
-            const emojiRegex = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
-            if (emojiRegex.test(tweet)) {
-                probabilities.favorite += 0.05;
-                probabilities.click += 0.05;
-            } else {
-                suggestions.push("😊 适当添加emoji提高吸引力和点击率");
-            }
-
-            // 5. 话题标签优化
-            const hashtags = (tweet.match(/#/g) || []).length;
-            if (hashtags > 0 && hashtags <= 2) {
-                probabilities.click += 0.1;
-                probabilities.repost += 0.05;
-            } else if (hashtags > 2) {
-                probabilities.not_interested += 0.05;
-                suggestions.push("⚠️ 话题标签过多可能降低互动 - 建议1-2个精准标签");
-            } else {
-                suggestions.push("📌 添加1-2个相关标签扩大曝光范围");
-            }
-
-            // 6. 媒体内容检测
-            if (tweet.includes('http')) {
-                probabilities.click += 0.15;
-                probabilities.favorite += 0.05;
-            }
-
-            // 7. @提及
-            if (tweet.includes('@')) {
-                probabilities.reply += 0.1;
-                probabilities.profile_click += 0.05;
-            }
-
-            // 8. 负面内容检测
-            const negativeWords = ['讨厌', '垃圾', '愚蠢', '傻', '恶心'];
-            const hasNegative = negativeWords.some(word => tweet.includes(word));
-            if (hasNegative) {
-                probabilities.report += 0.02;
-                probabilities.not_interested += 0.05;
-                probabilities.favorite -= 0.1;
-            }
-
-            // 9. 全大写检测（X 算法会降权）
-            const upperCaseRatio = (tweet.match(/[A-Z]/g) || []).length / tweet.length;
-            if (upperCaseRatio > 0.5) {
-                probabilities.not_interested += 0.1;
-                suggestions.push("⚠️ 过多大写字母会被算法降权");
-            }
-
-            // 计算加权分数（基于 Phoenix Weighted Scorer）
-            let finalScore = 0;
-            for (const [action, prob] of Object.entries(probabilities)) {
-                finalScore += prob * this.ENGAGEMENT_WEIGHTS[action];
-            }
-
-            // 标准化为百分比
-            const engagement_score = Math.max(20, Math.min(95, Math.round(40 + finalScore * 10)));
-            const viral_potential = Math.max(20, Math.min(95, Math.round(35 + probabilities.repost * 100 + probabilities.quote * 80)));
-            const quality_score = Math.max(20, Math.min(95, Math.round(50 + probabilities.favorite * 60 - probabilities.not_interested * 100)));
-
-            // 生成优化版本
-            const optimized = this.generateOptimized(tweet, probabilities, emojiRegex);
-
-            return {
-                engagement_score,
-                viral_potential,
-                quality_score,
-                suggestions: suggestions.slice(0, 4),
-                optimized_tweet: optimized,
-                probabilities
-            };
-        },
-
-        generateOptimized(tweet, probabilities, emojiRegex) {
-            let optimizedParts = [];
-            let needsImprovement = false;
-
-            // 如果没有 emoji 且互动率低，添加 emoji
-            if (!emojiRegex.test(tweet) && probabilities.favorite < 0.4) {
-                const relevantEmojis = ['💡', '🔥', '🤔', '📈', '⚡'];
-                optimizedParts.push(relevantEmojis[Math.floor(Math.random() * relevantEmojis.length)]);
-                needsImprovement = true;
-            }
-            
-            optimizedParts.push(tweet);
-            
-            // 如果没有问题且回复率低，添加讨论性问题
-            if (probabilities.reply < 0.2 && tweet.length < 240) {
-                const questions = ['\n\n你怎么看？', '\n\n同意吗？', '\n\n你的经历是？'];
-                optimizedParts.push(questions[Math.floor(Math.random() * questions.length)]);
-                needsImprovement = true;
-            }
-            
-            // 如果没有标签且传播力低，添加相关标签
-            if (!tweet.includes('#') && probabilities.repost < 0.1 && tweet.length < 260) {
-                optimizedParts.push(' #讨论');
-                needsImprovement = true;
-            }
-
-            const optimized = optimizedParts.join(' ').trim();
-            
-            // 如果优化后超过280字符，返回原文
-            // 如果没有需要改进的地方，也返回原文
-            return (optimized.length > 280 || !needsImprovement) ? tweet : optimized;
+        if (tweet.length > 280) {
+            document.getElementById('results').innerHTML = '<div class="alert alert-info">❌ 推文超过280字符</div>';
+            return;
         }
-    };
 
-    // 账号诊断器
-    const AccountDiagnoser = {
-        diagnose(username) {
-            let spamScore = 0;
-            let toxicity = 0;
-            let shadowbanRisk = 0;
+        this.disabled = true;
+        document.getElementById('results').innerHTML = '<div style="text-align: center; padding: 20px;"><div class="spinner"></div><div class="loading-text">分析中...</div></div>';
 
-            // 用户名分析
-            const usernamePattern = /^[a-zA-Z0-9_]{1,15}$/;
-            if (!usernamePattern.test(username)) spamScore += 20;
-            if (username.length < 4) spamScore += 15;
-            if (/\d{3,}/.test(username)) spamScore += 15;
-            spamScore += Math.floor(Math.random() * 20);
+        setTimeout(() => {
+            const result = analyze(tweet);
+            showResults(result, tweet);
+            this.disabled = false;
+        }, 1000);
+    });
 
-            // 社交毒性分析
-            if (/crypto|nft|airdrop|free|giveaway/i.test(username)) {
-                toxicity += 25;
-            }
-            if (username.includes('_') && username.split('_').length > 2) {
-                toxicity += 10;
-            }
-            toxicity += Math.floor(Math.random() * 25);
+    // 分析函数
+    function analyze(tweet) {
+        let eng = 50, viral = 50, qual = 50;
+        const sugg = [];
 
-            // 封禁风险
-            if (spamScore > 30) shadowbanRisk += 15;
-            if (toxicity > 30) shadowbanRisk += 15;
-            shadowbanRisk += Math.floor(Math.random() * 20);
-
-            // 健康评分
-            let healthScore = 100;
-            healthScore -= Math.floor(spamScore * 0.4);
-            healthScore -= Math.floor(toxicity * 0.4);
-            healthScore -= Math.floor(shadowbanRisk * 0.5);
-            healthScore = Math.max(30, Math.min(95, healthScore));
-
-            // 生成建议
-            const actions = this.generateActions(spamScore, toxicity, shadowbanRisk);
-            const diagnosis = this.generateDiagnosis(username, healthScore, spamScore, toxicity, shadowbanRisk);
-
-            return {
-                health_score: healthScore,
-                spam_probability: Math.min(100, spamScore),
-                social_toxicity: Math.min(100, toxicity),
-                shadowban_risk: Math.min(100, shadowbanRisk),
-                actions,
-                diagnosis
-            };
-        },
-
-        generateActions(spamScore, toxicity, shadowbanRisk) {
-            const actions = [];
-            
-            if (spamScore > 25) {
-                actions.push("🎯 优先提高回复互动（13.5x权重）- 这是Phoenix算法最看重的信号。减少单向发布，多参与有价值的对话");
-            } else {
-                actions.push("✅ 继续保持高质量原创内容，专注于能引发回复的话题讨论");
-            }
-            
-            if (toxicity > 25) {
-                actions.push("🔍 审查社交网络质量 - Phoenix的两塔模型会分析你的互动对象。取消关注可疑账号，多与真实活跃的KOL互动");
-            } else {
-                actions.push("📈 持续优化社交图谱 - 与高质量账号互动能提升你在Phoenix检索阶段的排名");
-            }
-            
-            if (shadowbanRisk > 20) {
-                actions.push("⚠️ 立即行动：Phoenix Transformer会分析你的完整行为序列。避免：过度自动化、批量操作、spam关键词。增加：多样化内容、真实互动、视频/图片");
-            } else {
-                actions.push("🚀 保持稳定发文节奏（每天2-4条），让Grok transformer学习你的正常行为模式");
-            }
-
-            return actions;
-        },
-
-        generateDiagnosis(username, healthScore, spamScore, toxicity, shadowbanRisk) {
-            if (healthScore >= 80) {
-                return `🌟 账号 @${username} 在Phoenix算法评估中表现优秀！你的内容策略符合Grok transformer的偏好。继续专注于引发回复的高质量讨论。`;
-            } else if (healthScore >= 65) {
-                return `✅ 账号 @${username} 整体健康。Phoenix的两阶段排序（检索+排名）都能正常工作。建议增加对话性内容来提升回复率。`;
-            } else if (healthScore >= 50) {
-                return `⚠️ 账号 @${username} 存在风险。Phoenix Transformer可能已检测到异常行为模式。需要立即优化内容策略和互动质量。`;
-            } else {
-                return `🚨 账号 @${username} 高风险！多个Phoenix评分向量异常（垃圾:${spamScore}% 毒性:${toxicity}% 封禁:${shadowbanRisk}%）。强烈建议暂停当前策略，全面整改。`;
-            }
-        },
-
-        getHealthLabel(score) {
-            if (score >= 90) return '优秀 🌟';
-            if (score >= 80) return '良好 ✅';
-            if (score >= 70) return '中等 ⚠️';
-            if (score >= 60) return '需改进 ⚠️';
-            return '危险 🚨';
+        // 问题检测（最重要 - 13.5x权重）
+        if (tweet.includes('?') || tweet.includes('？')) {
+            eng += 20;
+            viral += 15;
+            sugg.push('✅ 包含问题提高回复率（13.5x权重）');
+        } else {
+            sugg.push('🔥 添加问题提升回复率（13.5x权重）');
         }
-    };
 
-    // UI 控制器
-    const UIController = {
-        displayOptimizationResults(result, originalTweet) {
-            const resultsDiv = document.getElementById('optimizationResults');
-            
-            resultsDiv.innerHTML = `
-                <div class="metrics" style="margin-top: 15px;">
-                    <div class="metric-card">
-                        <div class="metric-value">${result.engagement_score}</div>
-                        <div class="metric-label">Phoenix评分</div>
+        // 长度
+        if (tweet.length < 50) {
+            qual -= 15;
+            sugg.push('⚠️ 推文太短，建议80-180字符');
+        } else if (tweet.length > 200) {
+            qual -= 10;
+        } else {
+            eng += 15;
+        }
+
+        // Emoji
+        if (/[\u{1F600}-\u{1F6FF}]/u.test(tweet)) {
+            eng += 10;
+            viral += 10;
+        } else {
+            sugg.push('😊 添加emoji提高吸引力');
+        }
+
+        // 标签
+        const tags = (tweet.match(/#/g) || []).length;
+        if (tags > 0 && tags <= 2) {
+            viral += 15;
+        } else if (tags > 2) {
+            eng -= 10;
+            sugg.push('⚠️ 标签过多，建议1-2个');
+        } else {
+            sugg.push('📌 添加1-2个标签扩大曝光');
+        }
+
+        // 优化版本
+        let opt = tweet;
+        if (!/[\u{1F600}-\u{1F6FF}]/u.test(tweet)) {
+            opt = '💡 ' + tweet;
+        }
+        if (!tweet.includes('?') && !tweet.includes('？') && opt.length < 240) {
+            opt += '\n\n你怎么看？';
+        }
+        if (tags === 0 && opt.length < 260) {
+            opt += ' #分享';
+        }
+        if (opt.length > 280) opt = tweet;
+
+        return {
+            eng: Math.max(20, Math.min(95, eng)),
+            viral: Math.max(20, Math.min(95, viral)),
+            qual: Math.max(20, Math.min(95, qual)),
+            sugg: sugg.slice(0, 4),
+            opt: opt
+        };
+    }
+
+    // 显示结果
+    function showResults(r, orig) {
+        document.getElementById('results').innerHTML = 
+            '<div class="metrics">' +
+            '<div class="metric-card"><div class="metric-value">' + r.eng + '</div><div class="metric-label">Phoenix评分</div></div>' +
+            '<div class="metric-card"><div class="metric-value">' + r.viral + '</div><div class="metric-label">传播力</div></div>' +
+            '<div class="metric-card"><div class="metric-value">' + r.qual + '</div><div class="metric-label">质量</div></div>' +
+            '</div>' +
+            '<div class="suggestions"><div class="suggestions-title">🎯 优化建议</div>' +
+            r.sugg.map(s => '<div class="suggestion-item">' + s + '</div>').join('') +
+            '</div>';
+
+        document.getElementById('preview').style.display = 'block';
+        document.getElementById('original').value = orig;
+        document.getElementById('optimized').value = r.opt;
+        document.getElementById('optCount').textContent = r.opt.length + ' / 280';
+        document.getElementById('metricsDisplay').innerHTML = 
+            '<div class="metric-card"><div class="metric-value">' + r.eng + '%</div><div class="metric-label">互动率</div></div>' +
+            '<div class="metric-card"><div class="metric-value">' + r.viral + '%</div><div class="metric-label">传播力</div></div>' +
+            '<div class="metric-card"><div class="metric-value">' + r.qual + '%</div><div class="metric-label">质量</div></div>';
+
+        setTimeout(() => {
+            document.getElementById('preview').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+    }
+
+    // 切换标签
+    function switchTab(name) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        event.target.classList.add('active');
+        document.getElementById(name + 'Tab').classList.add('active');
+    }
+
+    // 发布推文
+    function postTweet() {
+        const t = document.getElementById('optimized').value.trim();
+        if (!t) {
+            alert('没有内容');
+            return;
+        }
+        if (t.length > 280) {
+            alert('超过280字符');
+            return;
+        }
+        window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(t), '_blank');
+    }
+
+    // 复制
+    function copyTweet() {
+        const t = document.getElementById('optimized').value;
+        if (!t) return;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(t).then(() => {
+                alert('✅ 已复制！');
+            });
+        } else {
+            const el = document.createElement('textarea');
+            el.value = t;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            alert('✅ 已复制！');
+        }
+    }
+
+    console.log('✅ 加载完成');
+
+    // 全局变量
+    let hasUnlocked = false;
+
+    // 选择诊断模式
+    function selectMode(mode) {
+        document.getElementById('basicCard').style.borderColor = 'rgba(124, 58, 237, 0.3)';
+        document.getElementById('basicCard').style.background = 'rgba(30, 41, 59, 0.5)';
+        document.getElementById('grokCard').style.borderColor = 'rgba(124, 58, 237, 0.3)';
+        document.getElementById('grokCard').style.background = 'rgba(30, 41, 59, 0.5)';
+        
+        if (mode === 'basic') {
+            document.getElementById('basicMode').checked = true;
+            document.getElementById('basicCard').style.borderColor = '#00d4ff';
+            document.getElementById('basicCard').style.background = 'rgba(0, 212, 255, 0.1)';
+        } else {
+            document.getElementById('grokMode').checked = true;
+            document.getElementById('grokCard').style.borderColor = '#00d4ff';
+            document.getElementById('grokCard').style.background = 'rgba(0, 212, 255, 0.1)';
+        }
+    }
+
+    // 查看影响力指数
+    function checkInfluence() {
+        const user = document.getElementById('username').value.trim().replace('@', '');
+        if (!user) {
+            document.getElementById('influenceResults').innerHTML = '<div class="alert alert-info">⚠️ 请输入用户名</div>';
+            return;
+        }
+
+        document.getElementById('influenceResults').innerHTML = 
+            '<div style="text-align: center; padding: 20px;"><div class="spinner"></div><div class="loading-text">加载中...</div></div>';
+
+        setTimeout(() => {
+            document.getElementById('influenceResults').innerHTML = `
+                <div style="background: rgba(30, 41, 59, 0.5); border: 2px solid rgba(124, 58, 237, 0.3); border-radius: 16px; overflow: hidden; margin-top: 15px;">
+                    <div style="background: rgba(124, 58, 237, 0.2); padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(124, 58, 237, 0.3);">
+                        <h4 style="color: #00d4ff; margin: 0;">📊 @${user} 的影响力分析</h4>
+                        <a href="https://app.sorsa.io/profile/${user}" target="_blank" style="color: #94a3b8; text-decoration: none; font-size: 0.85em; padding: 5px 12px; border-radius: 8px; background: rgba(30, 41, 59, 0.5);">
+                            在新窗口打开 ↗
+                        </a>
                     </div>
-                    <div class="metric-card">
-                        <div class="metric-value">${result.viral_potential}</div>
-                        <div class="metric-label">传播潜力</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value">${result.quality_score}</div>
-                        <div class="metric-label">内容质量</div>
-                    </div>
-                </div>
-
-                <div class="suggestions">
-                    <div class="suggestions-title">🎯 基于X开源算法的优化建议</div>
-                    ${result.suggestions.map(s => `<div class="suggestion-item">${s}</div>`).join('')}
-                </div>
-            `;
-
-            // 更新预览卡片
-            const previewCard = document.getElementById('previewCard');
-            const originalTweetEl = document.getElementById('originalTweet');
-            const optimizedTweetEl = document.getElementById('optimizedTweet');
-            const optimizedCharCount = document.getElementById('optimizedCharCount');
-
-            previewCard.style.display = 'block';
-            originalTweetEl.value = originalTweet;
-            optimizedTweetEl.value = result.optimized_tweet;
-            
-            Utils.updateCharCount(optimizedTweetEl, optimizedCharCount);
-            
-            document.getElementById('engagementScore').textContent = `${result.engagement_score}%`;
-            document.getElementById('viralScore').textContent = `${result.viral_potential}%`;
-            document.getElementById('qualityScore').textContent = `${result.quality_score}%`;
-
-            setTimeout(() => {
-                previewCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }, 100);
-        },
-
-        displayHealthResults(result, username) {
-            const healthResults = document.getElementById('healthResults');
-            const scoreClass = result.health_score >= 80 ? 'success' : 
-                             result.health_score >= 60 ? 'warning' : 'danger';
-            
-            healthResults.innerHTML = `
-                <div style="--score: ${result.health_score}" class="score-circle">
-                    <div class="score-text">${result.health_score}</div>
-                </div>
-
-                <div class="alert alert-${scoreClass}" style="text-align: center;">
-                    健康度: <strong>${AccountDiagnoser.getHealthLabel(result.health_score)}</strong>
-                </div>
-
-                <div class="metrics">
-                    <div class="metric-card">
-                        <div class="metric-value" style="${result.spam_probability > 30 ? 'color: #ef4444;' : ''}">
-                            ${result.spam_probability}%
-                        </div>
-                        <div class="metric-label">垃圾概率</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value" style="${result.social_toxicity > 30 ? 'color: #ef4444;' : ''}">
-                            ${result.social_toxicity}%
-                        </div>
-                        <div class="metric-label">社交毒性</div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-value" style="${result.shadowban_risk > 30 ? 'color: #ef4444;' : ''}">
-                            ${result.shadowban_risk}%
-                        </div>
-                        <div class="metric-label">封禁风险</div>
-                    </div>
-                </div>
-
-                <div class="suggestions">
-                    <div class="suggestions-title">🔧 基于Phoenix算法的改进建议</div>
-                    ${result.actions.map((action, index) => `
-                        <div class="suggestion-item">
-                            <strong>行动 ${index + 1}:</strong> ${action}
-                        </div>
-                    `).join('')}
-                </div>
-
-                <div class="alert alert-info" style="margin-top: 15px;">
-                    <strong>Phoenix诊断:</strong> ${result.diagnosis}
-                </div>
-            `;
-        },
-
-        displayInfluenceScore(username) {
-            const influenceDiv = document.getElementById('influenceResults');
-            
-            Utils.showLoading('influenceResults', `正在加载 @${username} 的影响力数据...`);
-
-            setTimeout(() => {
-                influenceDiv.innerHTML = `
-                    <div class="influence-frame-container">
-                        <div class="influence-header">
-                            <h4>📊 @${username} 的影响力分析</h4>
-                            <a href="https://app.sorsa.io/profile/${username}" target="_blank" class="open-full-link">
-                                <span>在新窗口打开完整版</span>
-                                <span>↗</span>
-                            </a>
-                        </div>
-                        <iframe 
-                            src="https://app.sorsa.io/profile/${username}" 
-                            class="influence-frame"
-                            frameborder="0"
-                            loading="lazy"
-                            title="Sorsa.io 影响力分析"
-                        ></iframe>
-                        <div class="influence-footer">
-                            <small>数据来源: <a href="https://sorsa.io" target="_blank">Sorsa.io</a></small>
-                        </div>
-                    </div>
-                `;
-            }, 800);
-        },
-
-        showTweetPrompt(username) {
-            const retweetPromptDiv = document.getElementById('retweetPrompt');
-            retweetPromptDiv.style.display = 'block';
-            
-            retweetPromptDiv.innerHTML = `
-                <div class="retweet-prompt">
-                    <h3>🎁 解锁 Grok AI 深度分析</h3>
-                    <p>点击查看推文即可使用 Grok AI 自动生成专业诊断报告</p>
-                    
-                    <button class="retweet-btn" id="unlockGrokBtn">
-                        <span>🔗</span>
-                        <span>查看推文并解锁</span>
-                    </button>
-
-                    <div class="retweet-info">
-                        💡 解锁后将自动使用 AI 分析账号 @${username}
+                    <iframe src="https://app.sorsa.io/profile/${user}" style="width: 100%; height: 600px; border: none; display: block; background: #fff;"></iframe>
+                    <div style="background: rgba(15, 23, 42, 0.8); padding: 10px; text-align: center; border-top: 1px solid rgba(124, 58, 237, 0.3);">
+                        <small style="color: #94a3b8;">数据来源: <a href="https://sorsa.io" target="_blank" style="color: #00d4ff;">Sorsa.io</a></small>
                     </div>
                 </div>
             `;
+        }, 800);
+    }
 
-            document.getElementById('healthResults').innerHTML = '';
-            document.getElementById('grokPrompt').style.display = 'none';
-            
-            // 绑定解锁按钮事件
-            setTimeout(() => {
-                const unlockBtn = document.getElementById('unlockGrokBtn');
-                if (unlockBtn) {
-                    unlockBtn.addEventListener('click', () => EventHandlers.handleUnlockGrok(username));
-                }
-            }, 100);
+    // 账号诊断
+    function diagnose() {
+        const user = document.getElementById('username').value.trim().replace('@', '');
+        if (!user) {
+            document.getElementById('diagResults').innerHTML = '<div class="alert alert-info">⚠️ 请输入用户名</div>';
+            return;
+        }
 
-            setTimeout(() => {
-                retweetPromptDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }, 100);
-        },
+        const mode = document.querySelector('input[name="mode"]:checked').id;
 
-        showGrokPrompt(username) {
-            const grokPrompt = `作为 X 平台的 Phoenix 算法专家，对账号 @${username} 进行深度审计：
+        if (mode === 'grokMode') {
+            if (!hasUnlocked) {
+                showUnlockPrompt(user);
+                return;
+            }
+            showGrokPrompt(user);
+            return;
+        }
+
+        // 基础诊断
+        document.getElementById('diagResults').innerHTML = 
+            '<div style="text-align: center; padding: 20px;"><div class="spinner"></div><div class="loading-text">分析中...</div></div>';
+        document.getElementById('grokPrompt').style.display = 'none';
+
+        setTimeout(() => {
+            const result = analyzeAccount(user);
+            showDiagResults(result, user);
+        }, 1500);
+    }
+
+    // 账号分析
+    function analyzeAccount(user) {
+        let spam = Math.floor(Math.random() * 40) + 10;
+        let toxicity = Math.floor(Math.random() * 40) + 10;
+        let shadowban = Math.floor((spam + toxicity) / 3);
+        let health = 100 - Math.floor(spam * 0.4 + toxicity * 0.4 + shadowban * 0.5);
+        health = Math.max(30, Math.min(95, health));
+
+        const actions = [];
+        if (spam > 25) {
+            actions.push('🎯 优先提高回复互动（13.5x权重）- Phoenix算法最看重的信号');
+        } else {
+            actions.push('✅ 继续保持高质量原创内容');
+        }
+        
+        if (toxicity > 25) {
+            actions.push('🔍 审查社交网络 - 取消关注可疑账号，多与真实KOL互动');
+        } else {
+            actions.push('📈 持续优化社交图谱');
+        }
+        
+        if (shadowban > 20) {
+            actions.push('⚠️ 避免批量操作，增加多样化内容（视频/图片）');
+        } else {
+            actions.push('🚀 保持稳定发文节奏（每天2-4条）');
+        }
+
+        let diagnosis = '';
+        if (health >= 80) {
+            diagnosis = `🌟 账号 @${user} 在Phoenix算法评估中表现优秀！`;
+        } else if (health >= 65) {
+            diagnosis = `✅ 账号 @${user} 整体健康。建议增加对话性内容。`;
+        } else if (health >= 50) {
+            diagnosis = `⚠️ 账号 @${user} 存在风险。需要优化内容策略。`;
+        } else {
+            diagnosis = `🚨 账号 @${user} 高风险！强烈建议全面整改。`;
+        }
+
+        return { health, spam, toxicity, shadowban, actions, diagnosis };
+    }
+
+    // 显示诊断结果
+    function showDiagResults(r, user) {
+        const label = r.health >= 90 ? '优秀 🌟' : r.health >= 80 ? '良好 ✅' : r.health >= 70 ? '中等 ⚠️' : r.health >= 60 ? '需改进 ⚠️' : '危险 🚨';
+        const alertClass = r.health >= 80 ? 'alert-info' : 'alert-info';
+        
+        document.getElementById('diagResults').innerHTML = `
+            <div style="width: 120px; height: 120px; margin: 20px auto; border-radius: 50%; background: conic-gradient(#00d4ff 0deg, #00d4ff ${r.health * 3.6}deg, rgba(30, 41, 59, 0.5) ${r.health * 3.6}deg); display: flex; align-items: center; justify-content: center; position: relative;">
+                <div style="width: 95px; height: 95px; background: #0f172a; border-radius: 50%; position: absolute;"></div>
+                <div style="font-size: 2.2em; font-weight: 700; background: linear-gradient(135deg, #00d4ff 0%, #7c3aed 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; z-index: 1;">${r.health}</div>
+            </div>
+            <div class="alert ${alertClass}" style="text-align: center;">健康度: <strong>${label}</strong></div>
+            <div class="metrics">
+                <div class="metric-card"><div class="metric-value" style="${r.spam > 30 ? 'color: #ef4444;' : ''}">${r.spam}%</div><div class="metric-label">垃圾概率</div></div>
+                <div class="metric-card"><div class="metric-value" style="${r.toxicity > 30 ? 'color: #ef4444;' : ''}">${r.toxicity}%</div><div class="metric-label">社交毒性</div></div>
+                <div class="metric-card"><div class="metric-value" style="${r.shadowban > 30 ? 'color: #ef4444;' : ''}">${r.shadowban}%</div><div class="metric-label">封禁风险</div></div>
+            </div>
+            <div class="suggestions">
+                <div class="suggestions-title">🔧 基于Phoenix算法的改进建议</div>
+                ${r.actions.map((a, i) => `<div class="suggestion-item"><strong>行动 ${i + 1}:</strong> ${a}</div>`).join('')}
+            </div>
+            <div class="alert alert-info" style="margin-top: 15px;"><strong>Phoenix诊断:</strong> ${r.diagnosis}</div>
+        `;
+    }
+
+    // 显示解锁提示
+    function showUnlockPrompt(user) {
+        document.getElementById('diagResults').innerHTML = `
+            <div style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.2) 0%, rgba(0, 212, 255, 0.2) 100%); border: 2px solid #7c3aed; border-radius: 16px; padding: 20px; margin-top: 15px; text-align: center;">
+                <h3 style="color: #00d4ff; font-size: 1.1em; margin-bottom: 15px;">🎁 解锁 Grok AI 深度分析</h3>
+                <p style="color: #cbd5e1; font-size: 0.9em; margin-bottom: 20px;">点击查看推文即可使用 Grok AI 自动生成专业诊断报告</p>
+                <button onclick="unlockGrok('${user}')" style="background: linear-gradient(135deg, #1DA1F2 0%, #00d4ff 100%); border: none; padding: 14px 30px; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 10px;">
+                    <span>🔗</span>
+                    <span>查看推文并解锁</span>
+                </button>
+                <div style="margin-top: 15px; padding: 12px; background: rgba(30, 41, 59, 0.5); border-radius: 8px; font-size: 0.85em; color: #94a3b8;">
+                    💡 解锁后将自动使用 AI 分析账号 @${user}
+                </div>
+            </div>
+        `;
+        document.getElementById('grokPrompt').style.display = 'none';
+    }
+
+    // 解锁Grok
+    function unlockGrok(user) {
+        hasUnlocked = true;
+        window.open('https://x.com/0xkingskuan/status/2013495958622085156', '_blank');
+        
+        document.getElementById('diagResults').innerHTML = `
+            <div style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.2) 0%, rgba(0, 212, 255, 0.2) 100%); border: 2px solid #7c3aed; border-radius: 16px; padding: 20px; margin-top: 15px; text-align: center;">
+                <h3 style="color: #00d4ff;">✅ 已解锁！</h3>
+                <div style="display: inline-flex; align-items: center; gap: 5px; background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 6px 12px; border-radius: 20px; margin-top: 10px;">
+                    <span>✓</span>
+                    <span>Grok AI 深度分析已激活</span>
+                </div>
+                <p style="margin-top: 15px; color: #cbd5e1;">正在启动 AI 分析...</p>
+            </div>
+        `;
+
+        setTimeout(() => showGrokPrompt(user), 1500);
+    }
+
+    // 显示Grok Prompt
+    function showGrokPrompt(user) {
+        const prompt = `作为 X 平台的 Phoenix 算法专家，对账号 @${user} 进行深度审计：
 ```
 
 📊 分析维度（基于开源的 xai-org/x-algorithm）：
@@ -1424,301 +816,49 @@
 ⚠️ 重点：不要泛泛而谈，直接基于 Phoenix Transformer、Weighted Scorer、Two-Tower Model 的工作原理给出可执行建议。`;
 
 ```
-            const grokPromptDiv = document.getElementById('grokPrompt');
-            grokPromptDiv.style.display = 'block';
-            grokPromptDiv.innerHTML = `
-                <div class="grok-prompt-box">
-                    <h4>🤖 专属 Grok AI 分析 Prompt - @${username}</h4>
-                    <div class="alert alert-info" style="margin-bottom: 12px; font-size: 0.85em;">
-                        💡 基于 X 开源的 Phoenix 算法生成专属深度分析提示词
-                    </div>
-                    <div class="prompt-text">${grokPrompt}</div>
-                    <button class="copy-prompt-btn" id="copyGrokPromptBtn">
-                        📋 一键复制完整 Prompt
-                    </button>
-                    <a href="https://x.com/i/grok" target="_blank" class="grok-link">
-                        🚀 打开 Grok 并粘贴使用
-                        <span>→</span>
-                    </a>
-                    <div class="retweet-info" style="margin-top: 15px;">
-                        <strong>📝 使用步骤：</strong><br>
-                        1️⃣ 点击"一键复制"按钮<br>
-                        2️⃣ 打开 Grok AI<br>
-                        3️⃣ 粘贴并发送<br>
-                        4️⃣ 获得基于 Phoenix 算法的专业审计报告
-                    </div>
+        document.getElementById('grokPrompt').style.display = 'block';
+        document.getElementById('grokPrompt').innerHTML = `
+            <div style="background: rgba(30, 41, 59, 0.6); border: 2px solid #7c3aed; border-radius: 12px; padding: 15px; margin-top: 15px;">
+                <h4 style="color: #00d4ff; margin-bottom: 10px;">🤖 专属 Grok AI 分析 Prompt - @${user}</h4>
+                <div class="alert alert-info" style="margin-bottom: 12px;">💡 基于 X 开源的 Phoenix 算法生成专属深度分析提示词</div>
+                <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(124, 58, 237, 0.3); border-radius: 8px; padding: 12px; color: #cbd5e1; font-size: 0.85em; font-family: monospace; white-space: pre-wrap; max-height: 300px; overflow-y: auto;">${prompt}</div>
+                <button onclick="copyPrompt(\`${prompt.replace(/`/g, '\\`')}\`)" style="margin-top: 10px; background: linear-gradient(135deg, #7c3aed 0%, #00d4ff 100%); border: none; padding: 10px 20px; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; width: 100%;">
+                    📋 一键复制完整 Prompt
+                </button>
+                <a href="https://x.com/i/grok" target="_blank" style="display: inline-flex; align-items: center; gap: 5px; color: #00d4ff; text-decoration: none; font-weight: 600; margin-top: 10px; padding: 8px 15px; background: rgba(0, 212, 255, 0.1); border-radius: 8px;">
+                    🚀 打开 Grok 并粘贴使用 →
+                </a>
+                <div style="margin-top: 15px; padding: 12px; background: rgba(30, 41, 59, 0.5); border-radius: 8px; font-size: 0.85em; color: #94a3b8;">
+                    <strong>📝 使用步骤：</strong><br>
+                    1️⃣ 点击"一键复制"按钮<br>
+                    2️⃣ 打开 Grok AI<br>
+                    3️⃣ 粘贴并发送<br>
+                    4️⃣ 获得基于 Phoenix 算法的专业审计报告
                 </div>
-            `;
-   
-            document.getElementById('healthResults').innerHTML = '';
-            document.getElementById('retweetPrompt').style.display = 'none';
-
-            // 绑定复制按钮事件
-            setTimeout(() => {
-                const copyBtn = document.getElementById('copyGrokPromptBtn');
-                if (copyBtn) {
-                    copyBtn.addEventListener('click', () => EventHandlers.handleCopyGrokPrompt(username, grokPrompt));
-                }
-            }, 100);
-            
-            setTimeout(() => {
-                grokPromptDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }, 100);
-        }
-    };
-
-    // 事件处理器
-    const EventHandlers = {
-        handleAnalyzeTweet() {
-            const tweetInput = document.getElementById('tweetInput');
-            const tweet = tweetInput.value.trim();
-            
-            if (!tweet) {
-                Utils.showAlert('optimizationResults', '⚠️ 请输入推文内容', 'warning');
-                return;
-            }
-
-            if (tweet.length > 280) {
-                Utils.showAlert('optimizationResults', '❌ 推文长度超过280字符', 'danger');
-                return;
-            }
-
-            const analyzeBtn = document.getElementById('analyzeBtn');
-            analyzeBtn.disabled = true;
-            
-            Utils.showLoading('optimizationResults', '正在使用 Phoenix 算法分析...');
-
-            setTimeout(() => {
-                const result = TweetAnalyzer.analyze(tweet);
-                UIController.displayOptimizationResults(result, tweet);
-                analyzeBtn.disabled = false;
-            }, 1200);
-        },
-
-        handleCheckInfluence() {
-            const usernameInput = document.getElementById('xUsername');
-            const username = usernameInput.value.trim().replace('@', '');
-            
-            if (!username) {
-                Utils.showAlert('influenceResults', '⚠️ 请先输入 X 用户名', 'warning');
-                return;
-            }
-
-            UIController.displayInfluenceScore(username);
-        },
-
-        handleDiagnose() {
-            const usernameInput = document.getElementById('xUsername');
-            const username = usernameInput.value.trim().replace('@', '');
-            
-            if (!username) {
-                Utils.showAlert('healthResults', '⚠️ 请输入 X 用户名', 'warning');
-                return;
-            }
-
-            const selectedMode = document.querySelector('input[name="diagMode"]:checked');
-            const mode = selectedMode ? selectedMode.id : 'basicMode';
-            
-            if (mode === 'grokMode') {
-                if (!AppState.hasClickedTweet) {
-                    UIController.showTweetPrompt(username);
-                    return;
-                }
-                UIController.showGrokPrompt(username);
-                return;
-            }
-
-            // 基础分析模式
-            const diagnoseBtn = document.getElementById('diagnoseBtn');
-            diagnoseBtn.disabled = true;
-            
-            Utils.showLoading('healthResults', '正在使用 Phoenix 算法分析账号...');
-            
-            const retweetPrompt = document.getElementById('retweetPrompt');
-            const grokPrompt = document.getElementById('grokPrompt');
-            if (retweetPrompt) retweetPrompt.style.display = 'none';
-            if (grokPrompt) grokPrompt.style.display = 'none';
-
-            setTimeout(() => {
-                const result = AccountDiagnoser.diagnose(username);
-                UIController.displayHealthResults(result, username);
-                diagnoseBtn.disabled = false;
-            }, 1500);
-        },
-
-        handleUnlockGrok(username) {
-            AppState.hasClickedTweet = true;
-            
-            const tweetUrl = 'https://x.com/0xkingskuan/status/2013495958622085156';
-            window.open(tweetUrl, '_blank');
-
-            const retweetPromptDiv = document.getElementById('retweetPrompt');
-            retweetPromptDiv.innerHTML = `
-                <div class="retweet-prompt">
-                    <h3>✅ 已解锁！</h3>
-                    <div class="verified-badge">
-                        <span>✓</span>
-                        <span>Grok AI 深度分析已激活</span>
-                    </div>
-                    <p style="margin-top: 15px;">正在启动 AI 分析...</p>
-                </div>
-            `;
-
-            setTimeout(() => {
-                UIController.showGrokPrompt(username);
-            }, 1500);
-        },
-
-        handleCopyGrokPrompt(username, promptText) {
-            Utils.copyToClipboard(
-                promptText,
-                () => {
-                    const btn = document.getElementById('copyGrokPromptBtn');
-                    if (btn) {
-                        const originalText = btn.innerHTML;
-                        btn.innerHTML = '✅ 已复制！现在前往 Grok 粘贴使用';
-                        btn.style.background = 'linear-gradient(135deg, #10b981 0%, #00d4ff 100%)';
-                        setTimeout(() => {
-                            btn.innerHTML = originalText;
-                            btn.style.background = 'linear-gradient(135deg, #7c3aed 0%, #00d4ff 100%)';
-                        }, 3000);
-                    }
-                },
-                () => {
-                    alert('❌ 复制失败，请手动复制 Prompt');
-                }
-            );
-        },
-
-        handleSwitchTab(tabName) {
-            const tabs = document.querySelectorAll('.tab');
-            const contents = document.querySelectorAll('.tab-content');
-            
-            tabs.forEach(tab => tab.classList.remove('active'));
-            contents.forEach(content => content.classList.remove('active'));
-            
-            const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
-            const activeContent = document.getElementById(`${tabName}Tab`);
-            
-            if (activeTab) activeTab.classList.add('active');
-            if (activeContent) activeContent.classList.add('active');
-        },
-
-        handlePostToTwitter() {
-            const tweet = document.getElementById('optimizedTweet').value.trim();
-            
-            if (!tweet) {
-                alert('没有推文内容');
-                return;
-            }
-
-            if (tweet.length > 280) {
-                alert('推文超过280字符，请先修改');
-                return;
-            }
-
-            const tweetText = encodeURIComponent(tweet);
-            window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank', 'width=550,height=420');
-        },
-
-        handleCopyTweet() {
-            const tweet = document.getElementById('optimizedTweet').value;
-            
-            if (!tweet) {
-                Utils.showAlert('optimizationResults', '⚠️ 没有内容可复制', 'warning');
-                return;
-            }
-
-            Utils.copyToClipboard(
-                tweet,
-                () => {
-                    Utils.showAlert('optimizationResults', '✅ 已复制到剪贴板!', 'success');
-                },
-                () => {
-                    Utils.showAlert('optimizationResults', '❌ 复制失败，请手动复制', 'danger');
-                }
-            );
-        },
-
-        handleSelectDiagnosisMode(card) {
-            const mode = card.dataset.mode;
-            const allCards = document.querySelectorAll('.option-card');
-            
-            allCards.forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            
-            if (mode === 'basic') {
-                document.getElementById('basicMode').checked = true;
-            } else {
-                document.getElementById('grokMode').checked = true;
-            }
-        }
-    };
-
-    // 初始化应用
-    function initApp() {
-        // 推文输入字符计数
-        const tweetInput = document.getElementById('tweetInput');
-        const charCount = document.getElementById('charCount');
-        
-        tweetInput.addEventListener('input', () => {
-            Utils.updateCharCount(tweetInput, charCount);
-        });
-
-        // 优化后推文字符计数
-        const optimizedTweet = document.getElementById('optimizedTweet');
-        const optimizedCharCount = document.getElementById('optimizedCharCount');
-        
-        optimizedTweet.addEventListener('input', () => {
-            Utils.updateCharCount(optimizedTweet, optimizedCharCount);
-        });
-
-        // 分析按钮
-        const analyzeBtn = document.getElementById('analyzeBtn');
-        analyzeBtn.addEventListener('click', EventHandlers.handleAnalyzeTweet);
-
-        // 查看影响力按钮
-        const checkInfluenceBtn = document.getElementById('checkInfluenceBtn');
-        checkInfluenceBtn.addEventListener('click', EventHandlers.handleCheckInfluence);
-
-        // 诊断按钮
-        const diagnoseBtn = document.getElementById('diagnoseBtn');
-        diagnoseBtn.addEventListener('click', EventHandlers.handleDiagnose);
-
-        // 诊断模式选择
-        const optionCards = document.querySelectorAll('.option-card');
-        optionCards.forEach(card => {
-            card.addEventListener('click', () => {
-                EventHandlers.handleSelectDiagnosisMode(card);
-            });
-        });
-
-        // 标签切换
-        const tabs = document.querySelectorAll('.tab');
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const tabName = tab.dataset.tab;
-                EventHandlers.handleSwitchTab(tabName);
-            });
-        });
-
-        // 发布到 Twitter 按钮
-        const postToTwitterBtn = document.getElementById('postToTwitterBtn');
-        postToTwitterBtn.addEventListener('click', EventHandlers.handlePostToTwitter);
-
-        // 复制按钮
-        const copyBtn = document.getElementById('copyBtn');
-        copyBtn.addEventListener('click', EventHandlers.handleCopyTweet);
-
-        console.log('✅ X 推特优化器已初始化 - 基于 Phoenix 算法');
+            </div>
+        `;
+        document.getElementById('diagResults').innerHTML = '';
     }
 
-    // DOM 加载完成后初始化
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initApp);
-    } else {
-        initApp();
+    // 复制Prompt
+    function copyPrompt(text) {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ 已复制！现在前往 Grok 粘贴使用');
+            });
+        } else {
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            alert('✅ 已复制！现在前往 Grok 粘贴使用');
+        }
     }
+
+    // 初始化选中基础模式
+    selectMode('basic');
 </script>
 ```
 

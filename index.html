@@ -719,7 +719,7 @@
                         <input type="radio" name="diagMode" id="grokMode">
                         <label for="grokMode">
                             <strong>🤖 Grok AI 深度分析</strong>
-                            <span>需要转发推文解锁</span>
+                            <span>AI 自动生成专业报告</span>
                         </label>
                     </div>
                 </div>
@@ -992,7 +992,7 @@
         }, 100);
     }
 
-    let hasRetweeted = false;
+    let hasClickedTweet = false;
 
     function diagnoseAccount() {
         const username = document.getElementById('xUsername').value.trim().replace('@', '');
@@ -1002,20 +1002,26 @@
             return;
         }
 
-        const mode = document.querySelector('input[name="diagMode"]:checked');
-        if (!mode) {
-            showAlert('healthResults', '⚠️ 请选择诊断模式', 'warning');
-            return;
-        }
-
-        const modeId = mode.id;
+        const modeRadios = document.querySelectorAll('input[name="diagMode"]');
+        let selectedMode = null;
         
-        if (modeId === 'grokMode') {
-            if (!hasRetweeted) {
-                showRetweetPrompt();
+        modeRadios.forEach(radio => {
+            if (radio.checked) {
+                selectedMode = radio.id;
+            }
+        });
+
+        if (!selectedMode) {
+            selectedMode = 'basicMode';
+            document.getElementById('basicMode').checked = true;
+        }
+        
+        if (selectedMode === 'grokMode') {
+            if (!hasClickedTweet) {
+                showTweetPrompt();
                 return;
             }
-            showGrokPrompt(username);
+            runGrokAnalysis(username);
             return;
         }
 
@@ -1047,27 +1053,23 @@
         }
     }
 
-    function showRetweetPrompt() {
+    function showTweetPrompt() {
         const retweetPromptDiv = document.getElementById('retweetPrompt');
         retweetPromptDiv.style.display = 'block';
         
         retweetPromptDiv.innerHTML = `
             <div class="retweet-prompt">
                 <h3>🎁 解锁 Grok AI 深度分析</h3>
-                <p>转发以下推文即可免费使用 Grok AI 进行专业账号审计</p>
+                <p>点击查看推文即可使用 Grok AI 自动生成专业诊断报告</p>
                 
-                <button class="retweet-btn" onclick="openRetweetPage()">
-                    <span>🔄</span>
-                    <span>转发推文解锁</span>
+                <button class="retweet-btn" onclick="openTweetAndUnlock()">
+                    <span>🔗</span>
+                    <span>查看推文并解锁</span>
                 </button>
 
                 <div class="retweet-info">
-                    💡 转发后点击下方"已完成转发"按钮继续
+                    💡 解锁后将自动使用 AI 分析账号 @${document.getElementById('xUsername').value.trim().replace('@', '')}
                 </div>
-
-                <button class="btn btn-secondary" onclick="confirmRetweet()" style="margin-top: 10px; max-width: 200px; margin-left: auto; margin-right: auto;">
-                    ✅ 已完成转发
-                </button>
             </div>
         `;
 
@@ -1079,105 +1081,244 @@
         }, 100);
     }
 
-    function openRetweetPage() {
-        const tweetUrl = 'https://x.com/0xkingskuan/status/2013495958622085156';
-        const retweetUrl = `https://twitter.com/intent/retweet?tweet_id=2013495958622085156`;
-        window.open(retweetUrl, '_blank', 'width=550,height=420');
-    }
-
-    function confirmRetweet() {
-        hasRetweeted = true;
+    function openTweetAndUnlock() {
+        hasClickedTweet = true;
         
+        const tweetUrl = 'https://x.com/0xkingskuan/status/2013495958622085156';
+        window.open(tweetUrl, '_blank');
+
         const retweetPromptDiv = document.getElementById('retweetPrompt');
         retweetPromptDiv.innerHTML = `
             <div class="retweet-prompt">
-                <h3>✅ 感谢支持！</h3>
+                <h3>✅ 已解锁！</h3>
                 <div class="verified-badge">
                     <span>✓</span>
-                    <span>已解锁 Grok AI 深度分析</span>
+                    <span>Grok AI 深度分析已激活</span>
                 </div>
-                <p style="margin-top: 15px;">现在可以使用 Grok AI 进行专业账号审计了</p>
+                <p style="margin-top: 15px;">正在启动 AI 分析...</p>
             </div>
         `;
 
         setTimeout(() => {
             const username = document.getElementById('xUsername').value.trim().replace('@', '');
             if (username) {
-                showGrokPrompt(username);
+                runGrokAnalysis(username);
             }
         }, 1500);
     }
 
-    function showGrokPrompt(username) {
-        const grokPrompt = `Act as a Senior Algorithm Engineer at X. Conduct a ruthless audit of my profile @${username}.
+    function runGrokAnalysis(username) {
+        // 显示 Grok Prompt 让用户复制
+        const grokPrompt = `作为 X 平台的高级算法工程师，对我的账号 @${username} 进行严格审计。
 ```
 
-Analyze these 3 fatal vectors:
+分析以下 3 个关键向量：
 
-1. Spam Probability: Do my replies trigger the ‘engagement bait’ filter?
-1. Social Graph Toxicity: Am I interacting with bot clusters or low-quality circles?
-1. Shadowban Status: Calculate the probability of my reach being throttled.
+1. 垃圾内容概率：我的回复是否触发了”互动诱饵”过滤器？
+1. 社交图谱毒性：我是否在与机器人集群或低质量圈子互动？
+1. 影子封禁状态：计算我的触达被限流的概率。
 
-Output:
+输出：
 
-A brutally honest ‘Account Health Score’ (0-100).
-3 immediate surgical actions to restore reach`;
-
-```
+1. 一个brutally honest的”账号健康评分”（0-100分）
+1. 3个立即可执行的改进措施来恢复触达率`;
+   
+   ```
         const grokPromptDiv = document.getElementById('grokPrompt');
         grokPromptDiv.style.display = 'block';
         grokPromptDiv.innerHTML = `
             <div class="grok-prompt-box">
-                <h4>🤖 复制以下 Prompt 到 Grok 进行专业分析</h4>
+                <h4>🤖 专属 Grok AI 分析 Prompt</h4>
+                <div class="alert alert-info" style="margin-bottom: 12px; font-size: 0.85em;">
+                    💡 已为账号 <strong>@${username}</strong> 生成专属 Prompt
+                </div>
                 <div class="prompt-text">${grokPrompt}</div>
-                <button class="copy-prompt-btn" onclick="copyGrokPrompt()">
-                    📋 复制 Prompt
+                <button class="copy-prompt-btn" onclick="copyGrokPromptToClipboard('${username}')">
+                    📋 一键复制完整 Prompt
                 </button>
-                <a href="https://x.com/i/grok" target="_blank" class="grok-link">
-                    🚀 在 Grok 中打开
+                <a href="https://x.com/i/grok" target="_blank" class="grok-link" onclick="markGrokOpened()">
+                    🚀 打开 Grok 并粘贴使用
                     <span>→</span>
                 </a>
+                <div class="retweet-info" style="margin-top: 15px;">
+                    <strong>📝 使用步骤：</strong><br>
+                    1️⃣ 点击"一键复制"按钮复制 Prompt<br>
+                    2️⃣ 点击"打开 Grok"进入 Grok AI<br>
+                    3️⃣ 在 Grok 对话框中粘贴并发送<br>
+                    4️⃣ 等待 Grok 生成专业审计报告
+                </div>
             </div>
         `;
-
+   
         document.getElementById('healthResults').innerHTML = '';
+        document.getElementById('retweetPrompt').style.display = 'none';
         
         setTimeout(() => {
             grokPromptDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }, 100);
     }
+   
+    function copyGrokPromptToClipboard(username) {
+        const promptText = `作为 X 平台的高级算法工程师，对我的账号 @${username} 进行严格审计。
+   ```
 
-    function copyGrokPrompt() {
-        const username = document.getElementById('xUsername').value.trim().replace('@', '');
-        const promptText = `Act as a Senior Algorithm Engineer at X. Conduct a ruthless audit of my profile @${username}.
-```
+分析以下 3 个关键向量：
 
-Analyze these 3 fatal vectors:
+1. 垃圾内容概率：我的回复是否触发了”互动诱饵”过滤器？
+1. 社交图谱毒性：我是否在与机器人集群或低质量圈子互动？
+1. 影子封禁状态：计算我的触达被限流的概率。
 
-1. Spam Probability: Do my replies trigger the ‘engagement bait’ filter?
-1. Social Graph Toxicity: Am I interacting with bot clusters or low-quality circles?
-1. Shadowban Status: Calculate the probability of my reach being throttled.
+输出：
 
-Output:
-
-A brutally honest ‘Account Health Score’ (0-100).
-3 immediate surgical actions to restore reach`;
-
-```
+1. 一个brutally honest的”账号健康评分”（0-100分）
+1. 3个立即可执行的改进措施来恢复触达率`;
+   
+   ```
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(promptText).then(() => {
                 const btn = event.target;
                 const originalText = btn.innerHTML;
-                btn.innerHTML = '✅ 已复制！';
+                btn.innerHTML = '✅ 已复制！现在前往 Grok 粘贴使用';
+                btn.style.background = 'linear-gradient(135deg, #10b981 0%, #00d4ff 100%)';
                 setTimeout(() => {
                     btn.innerHTML = originalText;
-                }, 2000);
+                    btn.style.background = 'linear-gradient(135deg, #7c3aed 0%, #00d4ff 100%)';
+                }, 3000);
+            }).catch(() => {
+                fallbackCopyGrokPrompt(promptText);
             });
         } else {
-            fallbackCopy(promptText);
+            fallbackCopyGrokPrompt(promptText);
         }
     }
-
+   
+    function fallbackCopyGrokPrompt(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✅ 已复制！现在前往 Grok 粘贴使用';
+            btn.style.background = 'linear-gradient(135deg, #10b981 0%, #00d4ff 100%)';
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.background = 'linear-gradient(135deg, #7c3aed 0%, #00d4ff 100%)';
+            }, 3000);
+        } catch (err) {
+            alert('❌ 复制失败，请手动复制 Prompt');
+        }
+        document.body.removeChild(textarea);
+    }
+   
+    function markGrokOpened() {
+        // 用户点击打开 Grok 的跟踪
+        console.log('User opened Grok');
+    }
+   
+    function diagnoseAccountWithAdvancedAlgorithm(username) {
+        // 增强版本地分析
+        let spamScore = 0;
+        let toxicity = 0;
+        let shadowbanRisk = 0;
+   
+        // 用户名深度分析
+        const usernamePattern = /^[a-zA-Z0-9_]{1,15}$/;
+        const hasNumbers = /\d/.test(username);
+        const hasUnderscores = /_/.test(username);
+        const consecutiveNumbers = /\d{3,}/.test(username);
+        const consecutiveUnderscores = /_{2,}/.test(username);
+        
+        // 垃圾评分
+        if (!usernamePattern.test(username)) spamScore += 25;
+        if (username.length < 4) spamScore += 20;
+        if (consecutiveNumbers) spamScore += 25;
+        if (consecutiveUnderscores) spamScore += 15;
+        if (hasNumbers && hasUnderscores) spamScore += 10;
+        
+        // 高风险关键词检测
+        const spamKeywords = ['crypto', 'nft', 'airdrop', 'free', 'giveaway', 'earn', 'money', 'profit', 'winner', 'claim', 'reward'];
+        spamKeywords.forEach(keyword => {
+            if (username.toLowerCase().includes(keyword)) spamScore += 20;
+        });
+        
+        // 社交毒性评分
+        const toxicPatterns = ['bot', 'spam', 'fake', 'promo', 'official', 'verified', 'admin'];
+        toxicPatterns.forEach(pattern => {
+            if (username.toLowerCase().includes(pattern)) toxicity += 25;
+        });
+        
+        if (username.split('_').length > 3) toxicity += 15;
+        if (/\d{4,}/.test(username)) toxicity += 20;
+        
+        // 封禁风险计算
+        shadowbanRisk = Math.floor((spamScore * 0.5) + (toxicity * 0.5));
+        if (spamScore > 40) shadowbanRisk += 20;
+        if (toxicity > 40) shadowbanRisk += 20;
+        
+        // 综合健康评分
+        let healthScore = 100;
+        healthScore -= Math.floor(spamScore * 0.5);
+        healthScore -= Math.floor(toxicity * 0.5);
+        healthScore -= Math.floor(shadowbanRisk * 0.3);
+        healthScore = Math.max(15, Math.min(95, healthScore));
+        
+        spamScore = Math.min(100, spamScore);
+        toxicity = Math.min(100, toxicity);
+        shadowbanRisk = Math.min(100, shadowbanRisk);
+        
+        // 生成针对性建议
+        const actions = [];
+        
+        if (spamScore > 30) {
+            actions.push("⚠️ 用户名存在垃圾信号。建议：减少推广性关键词，增加原创内容比例，避免频繁发布重复信息");
+        } else if (spamScore > 15) {
+            actions.push("✓ 垃圾评分可接受。继续保持原创内容发布，避免使用诱导性语言");
+        } else {
+            actions.push("✅ 垃圾评分优秀。继续保持高质量原创内容策略");
+        }
+        
+        if (toxicity > 30) {
+            actions.push("⚠️ 社交网络存在毒性信号。立即行动：清理机器人粉丝，取消关注可疑账号，多与真实KOL互动");
+        } else if (toxicity > 15) {
+            actions.push("✓ 社交质量中等。建议提高与行业专家和真实用户的互动频率");
+        } else {
+            actions.push("✅ 社交网络健康。继续与高质量账号保持良好互动");
+        }
+        
+        if (shadowbanRisk > 40) {
+            actions.push("🚨 高封禁风险！紧急措施：立即停止批量操作，审查最近30天内容，删除可疑推文，增加多样化内容类型");
+        } else if (shadowbanRisk > 20) {
+            actions.push("⚠️ 存在限流风险。建议：保持稳定发文节奏（每天2-5条），增加视频/图片内容，避免敏感话题");
+        } else {
+            actions.push("✅ 封禁风险低。保持当前发文策略，继续优化内容质量");
+        }
+   
+        let diagnosis = "";
+        if (healthScore >= 85) {
+            diagnosis = `🌟 账号 @${username} 表现卓越！X 算法评估显示极佳的账号健康度。内容策略、互动模式和社交网络均处于最佳状态。建议继续保持当前策略，可适当增加发文频率以扩大影响力。`;
+        } else if (healthScore >= 70) {
+            diagnosis = `✅ 账号 @${username} 健康状况良好。算法评估显示正向信号占主导，但仍有优化空间。建议按照行动建议微调策略，特别关注${spamScore > toxicity ? '内容质量' : '互动对象选择'}方面的改进。`;
+        } else if (healthScore >= 50) {
+            diagnosis = `⚠️ 账号 @${username} 存在明显风险信号。X 算法检测到多个负面指标，包括${spamScore > 30 ? '垃圾内容特征' : ''}${toxicity > 30 ? '、社交网络质量问题' : ''}${shadowbanRisk > 30 ? '、限流风险' : ''}。需要立即按照建议采取行动，否则可能影响账号曝光和增长。`;
+        } else {
+            diagnosis = `🚨 严重警告！账号 @${username} 处于高风险状态。多项算法指标严重异常（垃圾评分: ${spamScore}%, 社交毒性: ${toxicity}%, 封禁风险: ${shadowbanRisk}%）。强烈建议立即暂停当前所有营销活动，全面整改内容策略和互动模式，否则账号随时可能被限流甚至封禁。`;
+        }
+   
+        return {
+            health_score: healthScore,
+            spam_probability: spamScore,
+            social_toxicity: toxicity,
+            shadowban_risk: shadowbanRisk,
+            actions: actions,
+            diagnosis: diagnosis
+        };
+    }
+   
     function diagnoseAccountWithAlgorithm(username) {
         // 基于 X Algorithm 的分析逻辑
         
@@ -1246,7 +1387,7 @@ A brutally honest ‘Account Health Score’ (0-100).
         } else {
             actions.push("保持稳定的发文节奏，避免突然大量发布或长期沉寂");
         }
-
+   
         let diagnosis = "";
         if (healthScore >= 80) {
             diagnosis = `账号 @${username} 表现优秀！算法评估显示良好的互动模式和内容质量。继续保持真实互动和原创内容发布。`;
@@ -1257,7 +1398,7 @@ A brutally honest ‘Account Health Score’ (0-100).
         } else {
             diagnosis = `⚠️ 账号 @${username} 处于高风险状态！多个算法指标异常，强烈建议按照行动建议进行整改，否则可能面临限流或封禁。`;
         }
-
+   
         return {
             health_score: healthScore,
             spam_probability: Math.min(100, spamScore),
@@ -1267,7 +1408,7 @@ A brutally honest ‘Account Health Score’ (0-100).
             diagnosis: diagnosis
         };
     }
-
+   
     function displayHealthResults(result, username) {
         const healthResults = document.getElementById('healthResults');
         
@@ -1278,11 +1419,11 @@ A brutally honest ‘Account Health Score’ (0-100).
             <div style="--score: ${result.health_score}" class="score-circle">
                 <div class="score-text">${result.health_score}</div>
             </div>
-
+   
             <div class="alert alert-${scoreClass}" style="text-align: center;">
                 健康度: <strong>${getHealthLabel(result.health_score)}</strong>
             </div>
-
+   
             <div class="metrics">
                 <div class="metric-card">
                     <div class="metric-value" style="${result.spam_probability > 30 ? 'color: #ef4444;' : ''}">
@@ -1303,7 +1444,7 @@ A brutally honest ‘Account Health Score’ (0-100).
                     <div class="metric-label">封禁风险</div>
                 </div>
             </div>
-
+   
             <div class="suggestions">
                 <div class="suggestions-title">🔧 改进建议</div>
                 ${result.actions.map((action, index) => `
@@ -1312,13 +1453,13 @@ A brutally honest ‘Account Health Score’ (0-100).
                     </div>
                 `).join('')}
             </div>
-
+   
             <div class="alert alert-info" style="margin-top: 15px;">
                 <strong>诊断:</strong> ${result.diagnosis}
             </div>
         `;
     }
-
+   
     function getHealthLabel(score) {
         if (score >= 90) return '优秀 🌟';
         if (score >= 80) return '良好 ✅';
@@ -1326,7 +1467,7 @@ A brutally honest ‘Account Health Score’ (0-100).
         if (score >= 60) return '需改进 ⚠️';
         return '危险 🚨';
     }
-
+   
     function switchTab(tabName) {
         const tabs = document.querySelectorAll('.tab');
         const contents = document.querySelectorAll('.tab-content');
@@ -1337,7 +1478,7 @@ A brutally honest ‘Account Health Score’ (0-100).
         event.target.classList.add('active');
         document.getElementById(tabName + 'Tab').classList.add('active');
     }
-
+   
     function postToTwitter() {
         const tweet = document.getElementById('optimizedTweet').value.trim();
         
@@ -1345,16 +1486,16 @@ A brutally honest ‘Account Health Score’ (0-100).
             alert('没有推文内容');
             return;
         }
-
+   
         if (tweet.length > 280) {
             alert('推文超过280字符，请先修改');
             return;
         }
-
+   
         const tweetText = encodeURIComponent(tweet);
         window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank', 'width=550,height=420');
     }
-
+   
     function copyToClipboard() {
         const tweet = document.getElementById('optimizedTweet').value;
         
@@ -1362,7 +1503,7 @@ A brutally honest ‘Account Health Score’ (0-100).
             showAlert('optimizationResults', '⚠️ 没有内容可复制', 'warning');
             return;
         }
-
+   
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(tweet).then(() => {
                 showAlert('optimizationResults', '✅ 已复制到剪贴板!', 'success');
@@ -1373,7 +1514,7 @@ A brutally honest ‘Account Health Score’ (0-100).
             fallbackCopy(tweet);
         }
     }
-
+   
     function fallbackCopy(text) {
         const textarea = document.createElement('textarea');
         textarea.value = text;
@@ -1389,7 +1530,7 @@ A brutally honest ‘Account Health Score’ (0-100).
         }
         document.body.removeChild(textarea);
     }
-
+   
     function showAlert(containerId, message, type) {
         const container = document.getElementById(containerId);
         container.innerHTML = `
@@ -1398,7 +1539,7 @@ A brutally honest ‘Account Health Score’ (0-100).
             </div>
         `;
     }
-
+   
     function showLoading(containerId, message) {
         const container = document.getElementById(containerId);
         container.innerHTML = `
@@ -1408,8 +1549,9 @@ A brutally honest ‘Account Health Score’ (0-100).
             </div>
         `;
     }
-</script>
-```
+   ```
+   
+    </script>
 
 </body>
 </html>

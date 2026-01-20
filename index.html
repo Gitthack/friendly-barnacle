@@ -3,8 +3,8 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚀 X 推文优化器</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>X 推特优化器</title>
     <style>
         * {
             margin: 0;
@@ -17,30 +17,42 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
-        padding: 10px;
+        padding: 0;
     }
 
     .container {
         max-width: 900px;
         margin: 0 auto;
+        padding: 10px;
     }
 
     .header {
         text-align: center;
         color: white;
-        padding: 15px 0;
-        margin-bottom: 20px;
+        padding: 20px 10px 15px;
+        margin: 0;
     }
 
     .header h1 {
-        font-size: 1.8em;
+        font-size: 1.6em;
         margin-bottom: 5px;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
 
-    .header p {
-        font-size: 0.9em;
+    .header .subtitle {
+        font-size: 0.85em;
         opacity: 0.9;
+        margin-bottom: 3px;
+    }
+
+    .header .creator {
+        font-size: 0.75em;
+        opacity: 0.8;
+        font-style: italic;
     }
 
     .card {
@@ -54,7 +66,7 @@
     .card h2 {
         color: #1DA1F2;
         margin-bottom: 15px;
-        font-size: 1.3em;
+        font-size: 1.2em;
         display: flex;
         align-items: center;
         gap: 8px;
@@ -63,6 +75,7 @@
     .icon {
         width: 24px;
         height: 24px;
+        flex-shrink: 0;
     }
 
     .input-group {
@@ -86,7 +99,7 @@
         font-family: inherit;
         resize: vertical;
         transition: border-color 0.3s;
-        min-height: 120px;
+        min-height: 100px;
     }
 
     textarea:focus {
@@ -173,13 +186,13 @@
 
     .metric-card {
         background: linear-gradient(135deg, #f5f8fa 0%, #e1e8ed 100%);
-        padding: 12px;
+        padding: 12px 8px;
         border-radius: 12px;
         text-align: center;
     }
 
     .metric-value {
-        font-size: 1.8em;
+        font-size: 1.6em;
         font-weight: 700;
         color: #1DA1F2;
         margin-bottom: 3px;
@@ -187,12 +200,12 @@
 
     .metric-label {
         color: #657786;
-        font-size: 0.8em;
+        font-size: 0.75em;
     }
 
     .score-circle {
-        width: 120px;
-        height: 120px;
+        width: 110px;
+        height: 110px;
         margin: 15px auto;
         border-radius: 50%;
         background: conic-gradient(
@@ -208,15 +221,15 @@
 
     .score-circle::before {
         content: '';
-        width: 95px;
-        height: 95px;
+        width: 88px;
+        height: 88px;
         background: white;
         border-radius: 50%;
         position: absolute;
     }
 
     .score-text {
-        font-size: 2em;
+        font-size: 1.8em;
         font-weight: 700;
         color: #1DA1F2;
         z-index: 1;
@@ -249,7 +262,7 @@
     }
 
     .suggestion-text {
-        font-size: 0.9em;
+        font-size: 0.88em;
         color: #333;
         line-height: 1.4;
     }
@@ -258,7 +271,7 @@
         padding: 12px;
         border-radius: 12px;
         margin-bottom: 15px;
-        font-size: 0.9em;
+        font-size: 0.88em;
     }
 
     .alert-info {
@@ -287,13 +300,13 @@
 
     .tabs {
         display: flex;
-        gap: 8px;
+        gap: 5px;
         margin-bottom: 15px;
         border-bottom: 2px solid #e1e8ed;
     }
 
     .tab {
-        padding: 10px 16px;
+        padding: 8px 14px;
         background: none;
         border: none;
         border-bottom: 3px solid transparent;
@@ -301,7 +314,7 @@
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s;
-        font-size: 0.9em;
+        font-size: 0.85em;
     }
 
     .tab.active {
@@ -345,15 +358,30 @@
 
     @media (max-width: 600px) {
         .header h1 {
-            font-size: 1.5em;
-        }
-        
-        .metrics {
-            grid-template-columns: 1fr;
+            font-size: 1.4em;
         }
         
         .card {
             padding: 15px;
+            border-radius: 12px;
+        }
+
+        .card h2 {
+            font-size: 1.1em;
+        }
+
+        textarea {
+            min-height: 90px;
+            font-size: 15px;
+        }
+
+        .metric-value {
+            font-size: 1.4em;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            font-size: 15px;
         }
     }
 </style>
@@ -363,8 +391,11 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 X 推文优化器</h1>
-            <p>基于 X Algorithm 智能优化</p>
+            <h1>
+                🚀 X 推特优化器
+            </h1>
+            <div class="subtitle">基于 X Algorithm 智能优化</div>
+            <div class="creator">由币世王创建</div>
         </div>
 
 ```
@@ -514,17 +545,17 @@
         }
     });
 
-    // 分析推文 - 使用本地算法
+    // 分析推文
     function analyzeTweet() {
         const tweet = tweetInput.value.trim();
         
         if (!tweet) {
-            showAlert('optimizationResults', '请输入推文内容', 'warning');
+            showAlert('optimizationResults', '⚠️ 请输入推文内容', 'warning');
             return;
         }
 
         if (tweet.length > 280) {
-            showAlert('optimizationResults', '推文长度超过280字符', 'danger');
+            showAlert('optimizationResults', '❌ 推文长度超过280字符', 'danger');
             return;
         }
 
@@ -533,15 +564,14 @@
         
         showLoading('optimizationResults', '正在分析推文...');
 
-        // 模拟分析过程
         setTimeout(() => {
             const result = analyzeWithAlgorithm(tweet);
             displayOptimizationResults(result, tweet);
             analyzeBtn.disabled = false;
-        }, 1500);
+        }, 1200);
     }
 
-    // 基于 X Algorithm 的分析函数
+    // 基于 X Algorithm 的分析
     function analyzeWithAlgorithm(tweet) {
         let engagement_score = 50;
         let viral_potential = 50;
@@ -549,94 +579,85 @@
         let suggestions = [];
         let optimized = tweet;
 
-        // 分析长度
+        // 长度分析
         if (tweet.length < 50) {
-            suggestions.push("推文太短，建议增加到80-180字符以提高互动率");
+            suggestions.push("推文太短，建议80-180字符提高互动");
             quality_score -= 15;
         } else if (tweet.length > 200) {
-            suggestions.push("推文较长，考虑分段或使用线程提高可读性");
+            suggestions.push("推文较长，考虑分段提高可读性");
             quality_score -= 10;
         } else {
             engagement_score += 15;
         }
 
-        // 检测是否有问题
+        // 问题检测
         if (tweet.includes('?') || tweet.includes('？')) {
             engagement_score += 20;
             viral_potential += 15;
-            suggestions.push("✅ 包含问题可以提高互动率");
+            suggestions.push("✅ 包含问题可提高互动率");
         } else {
-            suggestions.push("添加问题可以鼓励用户回复和讨论");
+            suggestions.push("添加问题可鼓励用户回复讨论");
         }
 
-        // 检测 emoji
+        // Emoji检测
         const emojiRegex = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
         if (emojiRegex.test(tweet)) {
             engagement_score += 10;
             viral_potential += 10;
-            suggestions.push("✅ Emoji 使用得当，有助于提高可见度");
+            suggestions.push("✅ Emoji使用得当，提高可见度");
         } else {
-            suggestions.push("添加相关 emoji 可以提高推文吸引力");
+            suggestions.push("添加相关emoji提高吸引力");
         }
 
-        // 检测话题标签
+        // 话题标签
         if (tweet.includes('#')) {
             const hashtagCount = (tweet.match(/#/g) || []).length;
             if (hashtagCount <= 3) {
                 engagement_score += 15;
                 viral_potential += 20;
-                suggestions.push("✅ 话题标签使用合理，有助于传播");
+                suggestions.push("✅ 话题标签使用合理");
             } else {
                 engagement_score -= 10;
-                suggestions.push("话题标签过多（建议1-3个），可能被视为垃圾内容");
+                suggestions.push("话题标签过多，建议1-3个");
             }
         } else {
-            suggestions.push("添加1-2个相关话题标签可以扩大受众");
+            suggestions.push("添加1-2个话题标签扩大受众");
         }
 
-        // 检测 @提及
+        // @提及
         if (tweet.includes('@')) {
             engagement_score += 10;
-            suggestions.push("✅ @提及用户有助于互动");
+            suggestions.push("✅ @提及有助于互动");
         }
 
-        // 检测链接
+        // 链接
         if (tweet.includes('http')) {
             engagement_score += 5;
             quality_score += 10;
-            suggestions.push("✅ 包含链接可以提供更多价值");
+            suggestions.push("✅ 包含链接提供更多价值");
         }
 
-        // 生成优化建议
+        // 生成优化版本
         let optimizedParts = [];
         
-        // 如果没有emoji，添加相关emoji
         if (!emojiRegex.test(tweet)) {
             const emojis = ['🔥', '💡', '🚀', '✨', '📈', '🎯'];
-            const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-            optimizedParts.push(randomEmoji);
+            optimizedParts.push(emojis[Math.floor(Math.random() * emojis.length)]);
         }
         
         optimizedParts.push(tweet);
         
-        // 如果没有问题且长度允许，添加引导性问题
         if (!tweet.includes('?') && !tweet.includes('？') && tweet.length < 240) {
             optimizedParts.push('\n\n你怎么看？');
         }
         
-        // 如果没有话题标签，建议添加
         if (!tweet.includes('#') && tweet.length < 250) {
             optimizedParts.push(' #分享');
         }
 
         optimized = optimizedParts.join(' ').trim();
+        if (optimized.length > 280) optimized = tweet;
 
-        // 确保不超过280字符
-        if (optimized.length > 280) {
-            optimized = tweet;
-        }
-
-        // 确保分数在合理范围
         engagement_score = Math.max(20, Math.min(95, engagement_score));
         viral_potential = Math.max(20, Math.min(95, viral_potential));
         quality_score = Math.max(20, Math.min(95, quality_score));
@@ -679,7 +700,6 @@
             </div>
         `;
 
-        // 显示预览
         document.getElementById('previewCard').style.display = 'block';
         document.getElementById('originalTweet').value = originalTweet;
         document.getElementById('optimizedTweet').value = result.optimized_tweet;
@@ -690,7 +710,9 @@
         document.getElementById('viralScore').textContent = `${result.viral_potential}%`;
         document.getElementById('qualityScore').textContent = `${result.quality_score}%`;
 
-        document.getElementById('previewCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        setTimeout(() => {
+            document.getElementById('previewCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
     }
 
     // 诊断账号
@@ -698,7 +720,7 @@
         const username = document.getElementById('xUsername').value.trim().replace('@', '');
         
         if (!username) {
-            showAlert('healthResults', '请输入 X 用户名', 'warning');
+            showAlert('healthResults', '⚠️ 请输入 X 用户名', 'warning');
             return;
         }
 
@@ -711,19 +733,18 @@
             const result = diagnoseAccountHealth(username);
             displayHealthResults(result, username);
             diagnoseBtn.disabled = false;
-        }, 2000);
+        }, 1500);
     }
 
     function diagnoseAccountHealth(username) {
-        // 基于用户名生成模拟数据
         const baseScore = 50 + Math.floor(Math.random() * 30);
         const spamProb = Math.floor(Math.random() * 40);
         const toxicity = Math.floor(Math.random() * 35);
         const shadowban = Math.floor(Math.random() * 25);
 
         const actions = [
-            "增加原创内容发布频率，减少单纯转发",
-            "提高与真实用户的互动，避免与可疑账号频繁互动",
+            "增加原创内容发布，减少单纯转发",
+            "提高与真实用户互动，避免可疑账号",
             "保持发文节奏稳定，避免短时间大量发布"
         ];
 
@@ -733,7 +754,7 @@
             social_toxicity: toxicity,
             shadowban_risk: shadowban,
             actions: actions,
-            diagnosis: `账号 @${username} 整体表现${baseScore >= 70 ? '良好' : '需要改进'}。建议关注内容质量和互动真实性。`
+            diagnosis: `账号 @${username} 整体表现${baseScore >= 70 ? '良好' : '需改进'}。建议关注内容质量和互动真实性。`
         };
     }
 
@@ -784,7 +805,7 @@
             </div>
 
             <div class="alert alert-info" style="margin-top: 15px;">
-                <strong>诊断说明:</strong> ${result.diagnosis}
+                <strong>诊断:</strong> ${result.diagnosis}
             </div>
         `;
     }
@@ -824,9 +845,7 @@
         }
 
         const tweetText = encodeURIComponent(tweet);
-        const twitterUrl = `https://twitter.com/intent/tweet?text=${tweetText}`;
-        
-        window.open(twitterUrl, '_blank', 'width=550,height=420');
+        window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank', 'width=550,height=420');
     }
 
     // 复制到剪贴板
@@ -834,22 +853,35 @@
         const tweet = document.getElementById('optimizedTweet').value;
         
         if (!tweet) {
-            alert('没有内容可复制');
+            showAlert('optimizationResults', '⚠️ 没有内容可复制', 'warning');
             return;
         }
 
-        navigator.clipboard.writeText(tweet).then(() => {
-            showAlert('optimizationResults', '✅ 已复制到剪贴板!', 'success');
-        }).catch(err => {
-            // 备用方案
-            const textarea = document.createElement('textarea');
-            textarea.value = tweet;
-            document.body.appendChild(textarea);
-            textarea.select();
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(tweet).then(() => {
+                showAlert('optimizationResults', '✅ 已复制到剪贴板!', 'success');
+            }).catch(() => {
+                fallbackCopy(tweet);
+            });
+        } else {
+            fallbackCopy(tweet);
+        }
+    }
+
+    function fallbackCopy(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
             document.execCommand('copy');
-            document.body.removeChild(textarea);
             showAlert('optimizationResults', '✅ 已复制到剪贴板!', 'success');
-        });
+        } catch (err) {
+            showAlert('optimizationResults', '❌ 复制失败，请手动复制', 'danger');
+        }
+        document.body.removeChild(textarea);
     }
 
     // 显示提示
@@ -862,7 +894,7 @@
         `;
     }
 
-    // 显示加载动画
+    // 显示加载
     function showLoading(containerId, message) {
         const container = document.getElementById(containerId);
         container.innerHTML = `

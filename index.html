@@ -624,6 +624,77 @@
         margin-top: 10px;
     }
 
+    .influence-frame-container {
+        background: rgba(30, 41, 59, 0.5);
+        border: 2px solid rgba(124, 58, 237, 0.3);
+        border-radius: 16px;
+        overflow: hidden;
+        margin-top: 15px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .influence-header {
+        background: rgba(124, 58, 237, 0.2);
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid rgba(124, 58, 237, 0.3);
+    }
+
+    .influence-header h4 {
+        color: #00d4ff;
+        font-size: 1em;
+        margin: 0;
+    }
+
+    .open-full-link {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #94a3b8;
+        text-decoration: none;
+        font-size: 0.85em;
+        transition: all 0.3s;
+        padding: 5px 12px;
+        border-radius: 8px;
+        background: rgba(30, 41, 59, 0.5);
+    }
+
+    .open-full-link:hover {
+        color: #00d4ff;
+        background: rgba(0, 212, 255, 0.1);
+    }
+
+    .influence-frame {
+        width: 100%;
+        height: 600px;
+        border: none;
+        display: block;
+        background: #fff;
+    }
+
+    .influence-footer {
+        background: rgba(15, 23, 42, 0.8);
+        padding: 10px 20px;
+        text-align: center;
+        border-top: 1px solid rgba(124, 58, 237, 0.3);
+    }
+
+    .influence-footer small {
+        color: #94a3b8;
+        font-size: 0.8em;
+    }
+
+    .influence-footer a {
+        color: #00d4ff;
+        text-decoration: none;
+    }
+
+    .influence-footer a:hover {
+        text-decoration: underline;
+    }
+
     @media (max-width: 600px) {
         .header {
             padding: 12px 15px;
@@ -644,6 +715,16 @@
 
         .card {
             padding: 15px;
+        }
+
+        .influence-frame {
+            height: 500px;
+        }
+
+        .influence-header {
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
         }
     }
 </style>
@@ -703,6 +784,13 @@
                 <label class="input-label">你的 X 用户名</label>
                 <input type="text" id="xUsername" placeholder="@your_username">
             </div>
+
+            <button class="btn" style="margin-bottom: 15px;" onclick="checkInfluenceScore()">
+                <span>📊</span>
+                <span>查看影响力指数 (Sorsa.io)</span>
+            </button>
+
+            <div id="influenceResults"></div>
 
             <div class="diagnosis-options">
                 <div class="option-card selected" onclick="selectDiagnosisMode('basic')">
@@ -834,6 +922,12 @@
     });
 
     function analyzeTweet() {
+        const tweetInput = document.getElementById('tweetInput');
+        if (!tweetInput) {
+            console.error('Tweet input element not found');
+            return;
+        }
+        
         const tweet = tweetInput.value.trim();
         
         if (!tweet) {
@@ -993,6 +1087,49 @@
     }
 
     let hasClickedTweet = false;
+
+    // 查看影响力指数
+    function checkInfluenceScore() {
+        const username = document.getElementById('xUsername').value.trim().replace('@', '');
+        
+        if (!username) {
+            showAlert('influenceResults', '⚠️ 请先输入 X 用户名', 'warning');
+            return;
+        }
+
+        const influenceDiv = document.getElementById('influenceResults');
+        influenceDiv.innerHTML = `
+            <div style="text-align: center; padding: 15px;">
+                <div class="spinner"></div>
+                <div class="loading-text">正在加载 @${username} 的影响力数据...</div>
+            </div>
+        `;
+
+        // 延迟显示 iframe
+        setTimeout(() => {
+            influenceDiv.innerHTML = `
+                <div class="influence-frame-container">
+                    <div class="influence-header">
+                        <h4>📊 @${username} 的影响力分析</h4>
+                        <a href="https://app.sorsa.io/profile/${username}" target="_blank" class="open-full-link">
+                            <span>在新窗口打开完整版</span>
+                            <span>↗</span>
+                        </a>
+                    </div>
+                    <iframe 
+                        src="https://app.sorsa.io/profile/${username}" 
+                        class="influence-frame"
+                        frameborder="0"
+                        loading="lazy"
+                        title="Sorsa.io 影响力分析"
+                    ></iframe>
+                    <div class="influence-footer">
+                        <small>数据来源: <a href="https://sorsa.io" target="_blank">Sorsa.io</a></small>
+                    </div>
+                </div>
+            `;
+        }, 800);
+    }
 
     function diagnoseAccount() {
         const username = document.getElementById('xUsername').value.trim().replace('@', '');

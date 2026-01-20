@@ -750,6 +750,7 @@
     </div>
 
     <div class="content">
+        <!-- 推文优化卡片 -->
         <div class="card">
             <div class="card-header">
                 <div class="card-icon">✨</div>
@@ -762,7 +763,7 @@
                 <div class="char-count" id="charCount">0 / 280</div>
             </div>
 
-            <button class="btn" id="analyzeBtn" onclick="analyzeTweet()">
+            <button class="btn" id="analyzeBtn">
                 <span>🔍</span>
                 <span>分析并优化</span>
             </button>
@@ -770,6 +771,7 @@
             <div id="optimizationResults"></div>
         </div>
 
+        <!-- 账号健康诊断卡片 -->
         <div class="card">
             <div class="card-header">
                 <div class="card-icon">🏥</div>
@@ -785,7 +787,7 @@
                 <input type="text" id="xUsername" placeholder="@your_username">
             </div>
 
-            <button class="btn" style="margin-bottom: 15px;" onclick="checkInfluenceScore()">
+            <button class="btn" id="checkInfluenceBtn" style="margin-bottom: 15px;">
                 <span>📊</span>
                 <span>查看影响力指数 (Sorsa.io)</span>
             </button>
@@ -793,7 +795,7 @@
             <div id="influenceResults"></div>
 
             <div class="diagnosis-options">
-                <div class="option-card selected" onclick="selectDiagnosisMode('basic')">
+                <div class="option-card selected" data-mode="basic">
                     <div class="option-header">
                         <input type="radio" name="diagMode" id="basicMode" checked>
                         <label for="basicMode">
@@ -802,7 +804,7 @@
                         </label>
                     </div>
                 </div>
-                <div class="option-card" onclick="selectDiagnosisMode('grok')">
+                <div class="option-card" data-mode="grok">
                     <div class="option-header">
                         <input type="radio" name="diagMode" id="grokMode">
                         <label for="grokMode">
@@ -813,17 +815,17 @@
                 </div>
             </div>
 
-            <button class="btn" id="diagnoseBtn" onclick="diagnoseAccount()">
+            <button class="btn" id="diagnoseBtn">
                 <span>🔬</span>
                 <span>开始诊断</span>
             </button>
 
             <div id="retweetPrompt" style="display: none;"></div>
-
             <div id="healthResults"></div>
             <div id="grokPrompt" style="display: none;"></div>
         </div>
 
+        <!-- 优化结果预览卡片 -->
         <div class="card" id="previewCard" style="display: none;">
             <div class="card-header">
                 <div class="card-icon">📊</div>
@@ -831,9 +833,9 @@
             </div>
 
             <div class="tabs">
-                <button class="tab active" onclick="switchTab('original')">原始</button>
-                <button class="tab" onclick="switchTab('optimized')">优化</button>
-                <button class="tab" onclick="switchTab('comparison')">对比</button>
+                <button class="tab active" data-tab="original">原始</button>
+                <button class="tab" data-tab="optimized">优化</button>
+                <button class="tab" data-tab="comparison">对比</button>
             </div>
 
             <div class="tab-content active" id="originalTab">
@@ -869,11 +871,11 @@
             </div>
 
             <div class="btn-group">
-                <button class="btn btn-success" onclick="postToTwitter()" style="flex: 2;">
+                <button class="btn btn-success" id="postToTwitterBtn" style="flex: 2;">
                     <span>🚀</span>
                     <span>发布到 X</span>
                 </button>
-                <button class="btn btn-secondary" onclick="copyToClipboard()" style="flex: 1;">
+                <button class="btn btn-secondary" id="copyBtn" style="flex: 1;">
                     <span>📋</span>
                     <span>复制</span>
                 </button>
@@ -883,424 +885,441 @@
 </div>
 
 <script>
-    const tweetInput = document.getElementById('tweetInput');
-    const charCount = document.getElementById('charCount');
+    // 应用状态
+    const AppState = {
+        hasClickedTweet: false
+    };
 
-    tweetInput.addEventListener('input', updateCharCount);
-
-    function updateCharCount() {
-        const length = tweetInput.value.length;
-        charCount.textContent = `${length} / 280`;
-        
-        if (length > 280) {
-            charCount.classList.add('error');
-            charCount.classList.remove('warning');
-        } else if (length > 260) {
-            charCount.classList.add('warning');
-            charCount.classList.remove('error');
-        } else {
-            charCount.classList.remove('warning', 'error');
-        }
-    }
-
-    const optimizedTweet = document.getElementById('optimizedTweet');
-    const optimizedCharCount = document.getElementById('optimizedCharCount');
-
-    optimizedTweet.addEventListener('input', function() {
-        const length = this.value.length;
-        optimizedCharCount.textContent = `${length} / 280`;
-        
-        if (length > 280) {
-            optimizedCharCount.classList.add('error');
-            optimizedCharCount.classList.remove('warning');
-        } else if (length > 260) {
-            optimizedCharCount.classList.add('warning');
-            optimizedCharCount.classList.remove('error');
-        } else {
-            optimizedCharCount.classList.remove('warning', 'error');
-        }
-    });
-
-    function analyzeTweet() {
-        const tweetInput = document.getElementById('tweetInput');
-        if (!tweetInput) {
-            console.error('Tweet input element not found');
-            return;
-        }
-        
-        const tweet = tweetInput.value.trim();
-        
-        if (!tweet) {
-            showAlert('optimizationResults', '⚠️ 请输入推文内容', 'warning');
-            return;
-        }
-
-        if (tweet.length > 280) {
-            showAlert('optimizationResults', '❌ 推文长度超过280字符', 'danger');
-            return;
-        }
-
-        const analyzeBtn = document.getElementById('analyzeBtn');
-        analyzeBtn.disabled = true;
-        
-        showLoading('optimizationResults', '正在分析推文...');
-
-        setTimeout(() => {
-            const result = analyzeWithAlgorithm(tweet);
-            displayOptimizationResults(result, tweet);
-            analyzeBtn.disabled = false;
-        }, 1200);
-    }
-
-    function analyzeWithAlgorithm(tweet) {
-        let engagement_score = 50;
-        let viral_potential = 50;
-        let quality_score = 50;
-        let suggestions = [];
-        let optimized = tweet;
-
-        if (tweet.length < 50) {
-            suggestions.push("推文太短，建议80-180字符提高互动");
-            quality_score -= 15;
-        } else if (tweet.length > 200) {
-            suggestions.push("推文较长，考虑分段提高可读性");
-            quality_score -= 10;
-        } else {
-            engagement_score += 15;
-        }
-
-        if (tweet.includes('?') || tweet.includes('？')) {
-            engagement_score += 20;
-            viral_potential += 15;
-            suggestions.push("✅ 包含问题可提高互动率");
-        } else {
-            suggestions.push("添加问题可鼓励用户回复讨论");
-        }
-
-        const emojiRegex = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
-        if (emojiRegex.test(tweet)) {
-            engagement_score += 10;
-            viral_potential += 10;
-            suggestions.push("✅ Emoji使用得当，提高可见度");
-        } else {
-            suggestions.push("添加相关emoji提高吸引力");
-        }
-
-        if (tweet.includes('#')) {
-            const hashtagCount = (tweet.match(/#/g) || []).length;
-            if (hashtagCount <= 3) {
-                engagement_score += 15;
-                viral_potential += 20;
-                suggestions.push("✅ 话题标签使用合理");
-            } else {
-                engagement_score -= 10;
-                suggestions.push("话题标签过多，建议1-3个");
-            }
-        } else {
-            suggestions.push("添加1-2个话题标签扩大受众");
-        }
-
-        if (tweet.includes('@')) {
-            engagement_score += 10;
-            suggestions.push("✅ @提及有助于互动");
-        }
-
-        if (tweet.includes('http')) {
-            engagement_score += 5;
-            quality_score += 10;
-            suggestions.push("✅ 包含链接提供更多价值");
-        }
-
-        let optimizedParts = [];
-        
-        if (!emojiRegex.test(tweet)) {
-            const emojis = ['🔥', '💡', '🚀', '✨', '📈', '🎯'];
-            optimizedParts.push(emojis[Math.floor(Math.random() * emojis.length)]);
-        }
-        
-        optimizedParts.push(tweet);
-        
-        if (!tweet.includes('?') && !tweet.includes('？') && tweet.length < 240) {
-            optimizedParts.push('\n\n你怎么看？');
-        }
-        
-        if (!tweet.includes('#') && tweet.length < 250) {
-            optimizedParts.push(' #分享');
-        }
-
-        optimized = optimizedParts.join(' ').trim();
-        if (optimized.length > 280) optimized = tweet;
-
-        engagement_score = Math.max(20, Math.min(95, engagement_score));
-        viral_potential = Math.max(20, Math.min(95, viral_potential));
-        quality_score = Math.max(20, Math.min(95, quality_score));
-
-        return {
-            engagement_score,
-            viral_potential,
-            quality_score,
-            suggestions: suggestions.slice(0, 3),
-            optimized_tweet: optimized
-        };
-    }
-
-    function displayOptimizationResults(result, originalTweet) {
-        const resultsDiv = document.getElementById('optimizationResults');
-        
-        resultsDiv.innerHTML = `
-            <div class="metrics" style="margin-top: 15px;">
-                <div class="metric-card">
-                    <div class="metric-value">${result.engagement_score}</div>
-                    <div class="metric-label">互动分</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${result.viral_potential}</div>
-                    <div class="metric-label">传播力</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${result.quality_score}</div>
-                    <div class="metric-label">质量分</div>
-                </div>
-            </div>
-
-            <div class="suggestions">
-                <div class="suggestions-title">💡 优化建议</div>
-                ${result.suggestions.map(s => `
-                    <div class="suggestion-item">${s}</div>
-                `).join('')}
-            </div>
-        `;
-
-        document.getElementById('previewCard').style.display = 'block';
-        document.getElementById('originalTweet').value = originalTweet;
-        document.getElementById('optimizedTweet').value = result.optimized_tweet;
-        
-        optimizedCharCount.textContent = `${result.optimized_tweet.length} / 280`;
-        
-        document.getElementById('engagementScore').textContent = `${result.engagement_score}%`;
-        document.getElementById('viralScore').textContent = `${result.viral_potential}%`;
-        document.getElementById('qualityScore').textContent = `${result.quality_score}%`;
-
-        setTimeout(() => {
-            document.getElementById('previewCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 100);
-    }
-
-    let hasClickedTweet = false;
-
-    // 查看影响力指数
-    function checkInfluenceScore() {
-        console.log('checkInfluenceScore called');
-        const usernameInput = document.getElementById('xUsername');
-        console.log('Username input element:', usernameInput);
-        
-        if (!usernameInput) {
-            alert('错误: 找不到用户名输入框');
-            return;
-        }
-        
-        const username = usernameInput.value.trim().replace('@', '');
-        console.log('Username:', username);
-        
-        if (!username) {
-            showAlert('influenceResults', '⚠️ 请先输入 X 用户名', 'warning');
-            return;
-        }
-
-        const influenceDiv = document.getElementById('influenceResults');
-        if (!influenceDiv) {
-            alert('错误: 找不到结果显示区域');
-            return;
-        }
-        
-        influenceDiv.innerHTML = `
-            <div style="text-align: center; padding: 15px;">
-                <div class="spinner"></div>
-                <div class="loading-text">正在加载 @${username} 的影响力数据...</div>
-            </div>
-        `;
-
-        setTimeout(() => {
-            influenceDiv.innerHTML = `
-                <div class="influence-frame-container">
-                    <div class="influence-header">
-                        <h4>📊 @${username} 的影响力分析</h4>
-                        <a href="https://app.sorsa.io/profile/${username}" target="_blank" class="open-full-link">
-                            <span>在新窗口打开完整版</span>
-                            <span>↗</span>
-                        </a>
+    // 工具函数
+    const Utils = {
+        showAlert(containerId, message, type) {
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.innerHTML = `
+                    <div class="alert alert-${type}" style="margin-top: 15px;">
+                        ${message}
                     </div>
-                    <iframe 
-                        src="https://app.sorsa.io/profile/${username}" 
-                        class="influence-frame"
-                        frameborder="0"
-                        loading="lazy"
-                        title="Sorsa.io 影响力分析"
-                    ></iframe>
-                    <div class="influence-footer">
-                        <small>数据来源: <a href="https://sorsa.io" target="_blank">Sorsa.io</a></small>
+                `;
+            }
+        },
+
+        showLoading(containerId, message) {
+            const container = document.getElementById(containerId);
+            if (container) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 20px;">
+                        <div class="spinner"></div>
+                        <div class="loading-text">${message}</div>
+                    </div>
+                `;
+            }
+        },
+
+        updateCharCount(textarea, countElement, maxLength = 280) {
+            const length = textarea.value.length;
+            countElement.textContent = `${length} / ${maxLength}`;
+            
+            countElement.classList.remove('warning', 'error');
+            if (length > maxLength) {
+                countElement.classList.add('error');
+            } else if (length > maxLength - 20) {
+                countElement.classList.add('warning');
+            }
+        },
+
+        copyToClipboard(text, successCallback, errorCallback) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text)
+                    .then(successCallback)
+                    .catch(() => this.fallbackCopy(text, successCallback, errorCallback));
+            } else {
+                this.fallbackCopy(text, successCallback, errorCallback);
+            }
+        },
+
+        fallbackCopy(text, successCallback, errorCallback) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                if (successCallback) successCallback();
+            } catch (err) {
+                if (errorCallback) errorCallback();
+            }
+            document.body.removeChild(textarea);
+        }
+    };
+
+    // 推文分析器
+    const TweetAnalyzer = {
+        analyze(tweet) {
+            let engagement_score = 50;
+            let viral_potential = 50;
+            let quality_score = 50;
+            let suggestions = [];
+
+            // 长度分析
+            if (tweet.length < 50) {
+                suggestions.push("推文太短，建议80-180字符提高互动");
+                quality_score -= 15;
+            } else if (tweet.length > 200) {
+                suggestions.push("推文较长，考虑分段提高可读性");
+                quality_score -= 10;
+            } else {
+                engagement_score += 15;
+            }
+
+            // 问题分析
+            if (tweet.includes('?') || tweet.includes('？')) {
+                engagement_score += 20;
+                viral_potential += 15;
+                suggestions.push("✅ 包含问题可提高互动率");
+            } else {
+                suggestions.push("添加问题可鼓励用户回复讨论");
+            }
+
+            // Emoji 分析
+            const emojiRegex = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
+            if (emojiRegex.test(tweet)) {
+                engagement_score += 10;
+                viral_potential += 10;
+                suggestions.push("✅ Emoji使用得当，提高可见度");
+            } else {
+                suggestions.push("添加相关emoji提高吸引力");
+            }
+
+            // 话题标签分析
+            if (tweet.includes('#')) {
+                const hashtagCount = (tweet.match(/#/g) || []).length;
+                if (hashtagCount <= 3) {
+                    engagement_score += 15;
+                    viral_potential += 20;
+                    suggestions.push("✅ 话题标签使用合理");
+                } else {
+                    engagement_score -= 10;
+                    suggestions.push("话题标签过多，建议1-3个");
+                }
+            } else {
+                suggestions.push("添加1-2个话题标签扩大受众");
+            }
+
+            // @提及分析
+            if (tweet.includes('@')) {
+                engagement_score += 10;
+                suggestions.push("✅ @提及有助于互动");
+            }
+
+            // 链接分析
+            if (tweet.includes('http')) {
+                engagement_score += 5;
+                quality_score += 10;
+                suggestions.push("✅ 包含链接提供更多价值");
+            }
+
+            // 生成优化版本
+            let optimized = this.generateOptimized(tweet, emojiRegex);
+
+            // 标准化分数
+            engagement_score = Math.max(20, Math.min(95, engagement_score));
+            viral_potential = Math.max(20, Math.min(95, viral_potential));
+            quality_score = Math.max(20, Math.min(95, quality_score));
+
+            return {
+                engagement_score,
+                viral_potential,
+                quality_score,
+                suggestions: suggestions.slice(0, 3),
+                optimized_tweet: optimized
+            };
+        },
+
+        generateOptimized(tweet, emojiRegex) {
+            let optimizedParts = [];
+            
+            if (!emojiRegex.test(tweet)) {
+                const emojis = ['🔥', '💡', '🚀', '✨', '📈', '🎯'];
+                optimizedParts.push(emojis[Math.floor(Math.random() * emojis.length)]);
+            }
+            
+            optimizedParts.push(tweet);
+            
+            if (!tweet.includes('?') && !tweet.includes('？') && tweet.length < 240) {
+                optimizedParts.push('\n\n你怎么看？');
+            }
+            
+            if (!tweet.includes('#') && tweet.length < 250) {
+                optimizedParts.push(' #分享');
+            }
+
+            let optimized = optimizedParts.join(' ').trim();
+            return optimized.length > 280 ? tweet : optimized;
+        }
+    };
+
+    // 账号诊断器
+    const AccountDiagnoser = {
+        diagnose(username) {
+            let spamScore = 0;
+            let toxicity = 0;
+            let shadowbanRisk = 0;
+
+            // 用户名分析
+            const usernamePattern = /^[a-zA-Z0-9_]{1,15}$/;
+            if (!usernamePattern.test(username)) spamScore += 20;
+            if (username.length < 4) spamScore += 15;
+            if (/\d{3,}/.test(username)) spamScore += 15;
+            spamScore += Math.floor(Math.random() * 20);
+
+            // 社交毒性分析
+            if (/crypto|nft|airdrop|free|giveaway/i.test(username)) {
+                toxicity += 25;
+            }
+            if (username.includes('_') && username.split('_').length > 2) {
+                toxicity += 10;
+            }
+            toxicity += Math.floor(Math.random() * 25);
+
+            // 封禁风险
+            if (spamScore > 30) shadowbanRisk += 15;
+            if (toxicity > 30) shadowbanRisk += 15;
+            shadowbanRisk += Math.floor(Math.random() * 20);
+
+            // 健康评分
+            let healthScore = 100;
+            healthScore -= Math.floor(spamScore * 0.4);
+            healthScore -= Math.floor(toxicity * 0.4);
+            healthScore -= Math.floor(shadowbanRisk * 0.5);
+            healthScore = Math.max(30, Math.min(95, healthScore));
+
+            // 生成建议
+            const actions = this.generateActions(spamScore, toxicity, shadowbanRisk);
+            const diagnosis = this.generateDiagnosis(username, healthScore, spamScore, toxicity, shadowbanRisk);
+
+            return {
+                health_score: healthScore,
+                spam_probability: Math.min(100, spamScore),
+                social_toxicity: Math.min(100, toxicity),
+                shadowban_risk: Math.min(100, shadowbanRisk),
+                actions,
+                diagnosis
+            };
+        },
+
+        generateActions(spamScore, toxicity, shadowbanRisk) {
+            const actions = [];
+            
+            if (spamScore > 25) {
+                actions.push("减少频繁发布相同内容，避免触发垃圾过滤器。每条推文应有独特价值");
+            } else {
+                actions.push("继续保持原创内容发布，避免重复性内容");
+            }
+            
+            if (toxicity > 25) {
+                actions.push("审查互动对象质量，取消关注可疑机器人账号，多与真实活跃用户互动");
+            } else {
+                actions.push("保持与高质量账号互动，建立良好的社交网络");
+            }
+            
+            if (shadowbanRisk > 20) {
+                actions.push("立即检查是否违反 X 规则，减少敏感话题讨论，增加多样化内容类型");
+            } else {
+                actions.push("保持稳定的发文节奏，避免突然大量发布或长期沉寂");
+            }
+
+            return actions;
+        },
+
+        generateDiagnosis(username, healthScore, spamScore, toxicity, shadowbanRisk) {
+            if (healthScore >= 80) {
+                return `账号 @${username} 表现优秀！算法评估显示良好的互动模式和内容质量。继续保持真实互动和原创内容发布。`;
+            } else if (healthScore >= 65) {
+                return `账号 @${username} 整体健康，但有改进空间。建议优化内容策略和互动质量，避免触发算法负面信号。`;
+            } else if (healthScore >= 50) {
+                return `账号 @${username} 存在风险信号。算法检测到可能影响曝光的行为模式，需要立即调整策略。`;
+            } else {
+                return `⚠️ 账号 @${username} 处于高风险状态！多个算法指标异常，强烈建议按照行动建议进行整改，否则可能面临限流或封禁。`;
+            }
+        },
+
+        getHealthLabel(score) {
+            if (score >= 90) return '优秀 🌟';
+            if (score >= 80) return '良好 ✅';
+            if (score >= 70) return '中等 ⚠️';
+            if (score >= 60) return '需改进 ⚠️';
+            return '危险 🚨';
+        }
+    };
+
+    // UI 控制器
+    const UIController = {
+        displayOptimizationResults(result, originalTweet) {
+            const resultsDiv = document.getElementById('optimizationResults');
+            
+            resultsDiv.innerHTML = `
+                <div class="metrics" style="margin-top: 15px;">
+                    <div class="metric-card">
+                        <div class="metric-value">${result.engagement_score}</div>
+                        <div class="metric-label">互动分</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${result.viral_potential}</div>
+                        <div class="metric-label">传播力</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${result.quality_score}</div>
+                        <div class="metric-label">质量分</div>
+                    </div>
+                </div>
+
+                <div class="suggestions">
+                    <div class="suggestions-title">💡 优化建议</div>
+                    ${result.suggestions.map(s => `<div class="suggestion-item">${s}</div>`).join('')}
+                </div>
+            `;
+
+            // 更新预览卡片
+            const previewCard = document.getElementById('previewCard');
+            const originalTweetEl = document.getElementById('originalTweet');
+            const optimizedTweetEl = document.getElementById('optimizedTweet');
+            const optimizedCharCount = document.getElementById('optimizedCharCount');
+
+            previewCard.style.display = 'block';
+            originalTweetEl.value = originalTweet;
+            optimizedTweetEl.value = result.optimized_tweet;
+            
+            Utils.updateCharCount(optimizedTweetEl, optimizedCharCount);
+            
+            document.getElementById('engagementScore').textContent = `${result.engagement_score}%`;
+            document.getElementById('viralScore').textContent = `${result.viral_potential}%`;
+            document.getElementById('qualityScore').textContent = `${result.quality_score}%`;
+
+            setTimeout(() => {
+                previewCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        },
+
+        displayHealthResults(result, username) {
+            const healthResults = document.getElementById('healthResults');
+            const scoreClass = result.health_score >= 80 ? 'success' : 
+                             result.health_score >= 60 ? 'warning' : 'danger';
+            
+            healthResults.innerHTML = `
+                <div style="--score: ${result.health_score}" class="score-circle">
+                    <div class="score-text">${result.health_score}</div>
+                </div>
+
+                <div class="alert alert-${scoreClass}" style="text-align: center;">
+                    健康度: <strong>${AccountDiagnoser.getHealthLabel(result.health_score)}</strong>
+                </div>
+
+                <div class="metrics">
+                    <div class="metric-card">
+                        <div class="metric-value" style="${result.spam_probability > 30 ? 'color: #ef4444;' : ''}">
+                            ${result.spam_probability}%
+                        </div>
+                        <div class="metric-label">垃圾概率</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" style="${result.social_toxicity > 30 ? 'color: #ef4444;' : ''}">
+                            ${result.social_toxicity}%
+                        </div>
+                        <div class="metric-label">社交毒性</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" style="${result.shadowban_risk > 30 ? 'color: #ef4444;' : ''}">
+                            ${result.shadowban_risk}%
+                        </div>
+                        <div class="metric-label">封禁风险</div>
+                    </div>
+                </div>
+
+                <div class="suggestions">
+                    <div class="suggestions-title">🔧 改进建议</div>
+                    ${result.actions.map((action, index) => `
+                        <div class="suggestion-item">
+                            <strong>行动 ${index + 1}:</strong> ${action}
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="alert alert-info" style="margin-top: 15px;">
+                    <strong>诊断:</strong> ${result.diagnosis}
+                </div>
+            `;
+        },
+
+        displayInfluenceScore(username) {
+            const influenceDiv = document.getElementById('influenceResults');
+            
+            Utils.showLoading('influenceResults', `正在加载 @${username} 的影响力数据...`);
+
+            setTimeout(() => {
+                influenceDiv.innerHTML = `
+                    <div class="influence-frame-container">
+                        <div class="influence-header">
+                            <h4>📊 @${username} 的影响力分析</h4>
+                            <a href="https://app.sorsa.io/profile/${username}" target="_blank" class="open-full-link">
+                                <span>在新窗口打开完整版</span>
+                                <span>↗</span>
+                            </a>
+                        </div>
+                        <iframe 
+                            src="https://app.sorsa.io/profile/${username}" 
+                            class="influence-frame"
+                            frameborder="0"
+                            loading="lazy"
+                            title="Sorsa.io 影响力分析"
+                        ></iframe>
+                        <div class="influence-footer">
+                            <small>数据来源: <a href="https://sorsa.io" target="_blank">Sorsa.io</a></small>
+                        </div>
+                    </div>
+                `;
+            }, 800);
+        },
+
+        showTweetPrompt(username) {
+            const retweetPromptDiv = document.getElementById('retweetPrompt');
+            retweetPromptDiv.style.display = 'block';
+            
+            retweetPromptDiv.innerHTML = `
+                <div class="retweet-prompt">
+                    <h3>🎁 解锁 Grok AI 深度分析</h3>
+                    <p>点击查看推文即可使用 Grok AI 自动生成专业诊断报告</p>
+                    
+                    <button class="retweet-btn" id="unlockGrokBtn">
+                        <span>🔗</span>
+                        <span>查看推文并解锁</span>
+                    </button>
+
+                    <div class="retweet-info">
+                        💡 解锁后将自动使用 AI 分析账号 @${username}
                     </div>
                 </div>
             `;
-        }, 800);
-    }
 
-    function diagnoseAccount() {
-        console.log('diagnoseAccount called');
-        const usernameInput = document.getElementById('xUsername');
-        console.log('Username input:', usernameInput);
-        
-        if (!usernameInput) {
-            alert('错误: 找不到用户名输入框');
-            return;
-        }
-        
-        const username = usernameInput.value.trim().replace('@', '');
-        console.log('Username value:', username);
-        
-        if (!username) {
-            showAlert('healthResults', '⚠️ 请输入 X 用户名', 'warning');
-            return;
-        }
+            document.getElementById('healthResults').innerHTML = '';
+            document.getElementById('grokPrompt').style.display = 'none';
+            
+            // 绑定解锁按钮事件
+            setTimeout(() => {
+                const unlockBtn = document.getElementById('unlockGrokBtn');
+                if (unlockBtn) {
+                    unlockBtn.addEventListener('click', () => EventHandlers.handleUnlockGrok(username));
+                }
+            }, 100);
 
-        const modeRadios = document.querySelectorAll('input[name="diagMode"]');
-        console.log('Mode radios found:', modeRadios.length);
-        
-        let selectedMode = null;
-        
-        modeRadios.forEach(radio => {
-            console.log('Radio:', radio.id, 'checked:', radio.checked);
-            if (radio.checked) {
-                selectedMode = radio.id;
-            }
-        });
+            setTimeout(() => {
+                retweetPromptDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        },
 
-        if (!selectedMode) {
-            console.log('No mode selected, defaulting to basicMode');
-            selectedMode = 'basicMode';
-            const basicModeRadio = document.getElementById('basicMode');
-            if (basicModeRadio) {
-                basicModeRadio.checked = true;
-            }
-        }
-        
-        console.log('Selected mode:', selectedMode);
-        
-        if (selectedMode === 'grokMode') {
-            console.log('Running Grok mode, hasClickedTweet:', hasClickedTweet);
-            if (!hasClickedTweet) {
-                showTweetPrompt();
-                return;
-            }
-            runGrokAnalysis(username);
-            return;
-        }
-
-        // 基础分析模式
-        console.log('Running basic analysis');
-        const diagnoseBtn = document.getElementById('diagnoseBtn');
-        if (diagnoseBtn) {
-            diagnoseBtn.disabled = true;
-        }
-        
-        showLoading('healthResults', '正在深度分析账号...');
-        
-        const retweetPrompt = document.getElementById('retweetPrompt');
-        const grokPrompt = document.getElementById('grokPrompt');
-        
-        if (retweetPrompt) retweetPrompt.style.display = 'none';
-        if (grokPrompt) grokPrompt.style.display = 'none';
-
-        setTimeout(() => {
-            const result = diagnoseAccountWithAlgorithm(username);
-            displayHealthResults(result, username);
-            if (diagnoseBtn) {
-                diagnoseBtn.disabled = false;
-            }
-        }, 1500);
-    }
-
-    function selectDiagnosisMode(mode) {
-        console.log('selectDiagnosisMode called with mode:', mode);
-        const cards = document.querySelectorAll('.option-card');
-        console.log('Found cards:', cards.length);
-        
-        cards.forEach(card => card.classList.remove('selected'));
-        
-        if (mode === 'basic') {
-            const basicMode = document.getElementById('basicMode');
-            if (basicMode) {
-                basicMode.checked = true;
-                console.log('Basic mode selected');
-            }
-            if (cards[0]) cards[0].classList.add('selected');
-        } else {
-            const grokMode = document.getElementById('grokMode');
-            if (grokMode) {
-                grokMode.checked = true;
-                console.log('Grok mode selected');
-            }
-            if (cards[1]) cards[1].classList.add('selected');
-        }
-    }
-
-    function showTweetPrompt() {
-        const retweetPromptDiv = document.getElementById('retweetPrompt');
-        retweetPromptDiv.style.display = 'block';
-        
-        retweetPromptDiv.innerHTML = `
-            <div class="retweet-prompt">
-                <h3>🎁 解锁 Grok AI 深度分析</h3>
-                <p>点击查看推文即可使用 Grok AI 自动生成专业诊断报告</p>
-                
-                <button class="retweet-btn" onclick="openTweetAndUnlock()">
-                    <span>🔗</span>
-                    <span>查看推文并解锁</span>
-                </button>
-
-                <div class="retweet-info">
-                    💡 解锁后将自动使用 AI 分析账号 @${document.getElementById('xUsername').value.trim().replace('@', '')}
-                </div>
-            </div>
-        `;
-
-        document.getElementById('healthResults').innerHTML = '';
-        document.getElementById('grokPrompt').style.display = 'none';
-        
-        setTimeout(() => {
-            retweetPromptDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 100);
-    }
-
-    function openTweetAndUnlock() {
-        hasClickedTweet = true;
-        
-        const tweetUrl = 'https://x.com/0xkingskuan/status/2013495958622085156';
-        window.open(tweetUrl, '_blank');
-
-        const retweetPromptDiv = document.getElementById('retweetPrompt');
-        retweetPromptDiv.innerHTML = `
-            <div class="retweet-prompt">
-                <h3>✅ 已解锁！</h3>
-                <div class="verified-badge">
-                    <span>✓</span>
-                    <span>Grok AI 深度分析已激活</span>
-                </div>
-                <p style="margin-top: 15px;">正在启动 AI 分析...</p>
-            </div>
-        `;
-
-        setTimeout(() => {
-            const username = document.getElementById('xUsername').value.trim().replace('@', '');
-            if (username) {
-                runGrokAnalysis(username);
-            }
-        }, 1500);
-    }
-
-    function runGrokAnalysis(username) {
-        // 显示 Grok Prompt 让用户复制
-        const grokPrompt = `作为 X 平台的高级算法工程师，对我的账号 @${username} 进行严格审计。
+        showGrokPrompt(username) {
+            const grokPrompt = `作为 X 平台的高级算法工程师，对我的账号 @${username} 进行严格审计。
 ```
 
 分析以下 3 个关键向量：
@@ -1315,430 +1334,300 @@
 1. 3个立即可执行的改进措施来恢复触达率`;
    
    ```
-        const grokPromptDiv = document.getElementById('grokPrompt');
-        grokPromptDiv.style.display = 'block';
-        grokPromptDiv.innerHTML = `
-            <div class="grok-prompt-box">
-                <h4>🤖 专属 Grok AI 分析 Prompt</h4>
-                <div class="alert alert-info" style="margin-bottom: 12px; font-size: 0.85em;">
-                    💡 已为账号 <strong>@${username}</strong> 生成专属 Prompt
+            const grokPromptDiv = document.getElementById('grokPrompt');
+            grokPromptDiv.style.display = 'block';
+            grokPromptDiv.innerHTML = `
+                <div class="grok-prompt-box">
+                    <h4>🤖 专属 Grok AI 分析 Prompt</h4>
+                    <div class="alert alert-info" style="margin-bottom: 12px; font-size: 0.85em;">
+                        💡 已为账号 <strong>@${username}</strong> 生成专属 Prompt
+                    </div>
+                    <div class="prompt-text">${grokPrompt}</div>
+                    <button class="copy-prompt-btn" id="copyGrokPromptBtn">
+                        📋 一键复制完整 Prompt
+                    </button>
+                    <a href="https://x.com/i/grok" target="_blank" class="grok-link">
+                        🚀 打开 Grok 并粘贴使用
+                        <span>→</span>
+                    </a>
+                    <div class="retweet-info" style="margin-top: 15px;">
+                        <strong>📝 使用步骤：</strong><br>
+                        1️⃣ 点击"一键复制"按钮复制 Prompt<br>
+                        2️⃣ 点击"打开 Grok"进入 Grok AI<br>
+                        3️⃣ 在 Grok 对话框中粘贴并发送<br>
+                        4️⃣ 等待 Grok 生成专业审计报告
+                    </div>
                 </div>
-                <div class="prompt-text">${grokPrompt}</div>
-                <button class="copy-prompt-btn" onclick="copyGrokPromptToClipboard('${username}')">
-                    📋 一键复制完整 Prompt
-                </button>
-                <a href="https://x.com/i/grok" target="_blank" class="grok-link" onclick="markGrokOpened()">
-                    🚀 打开 Grok 并粘贴使用
-                    <span>→</span>
-                </a>
-                <div class="retweet-info" style="margin-top: 15px;">
-                    <strong>📝 使用步骤：</strong><br>
-                    1️⃣ 点击"一键复制"按钮复制 Prompt<br>
-                    2️⃣ 点击"打开 Grok"进入 Grok AI<br>
-                    3️⃣ 在 Grok 对话框中粘贴并发送<br>
-                    4️⃣ 等待 Grok 生成专业审计报告
-                </div>
-            </div>
-        `;
+            `;
    
-        document.getElementById('healthResults').innerHTML = '';
-        document.getElementById('retweetPrompt').style.display = 'none';
-        
-        setTimeout(() => {
-            grokPromptDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 100);
-    }
+            document.getElementById('healthResults').innerHTML = '';
+            document.getElementById('retweetPrompt').style.display = 'none';
    
-    function copyGrokPromptToClipboard(username) {
-        const promptText = `作为 X 平台的高级算法工程师，对我的账号 @${username} 进行严格审计。
-   ```
-
-分析以下 3 个关键向量：
-
-1. 垃圾内容概率：我的回复是否触发了”互动诱饵”过滤器？
-1. 社交图谱毒性：我是否在与机器人集群或低质量圈子互动？
-1. 影子封禁状态：计算我的触达被限流的概率。
-
-输出：
-
-1. 一个brutally honest的”账号健康评分”（0-100分）
-1. 3个立即可执行的改进措施来恢复触达率`;
-   
-   ```
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(promptText).then(() => {
-                const btn = event.target;
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '✅ 已复制！现在前往 Grok 粘贴使用';
-                btn.style.background = 'linear-gradient(135deg, #10b981 0%, #00d4ff 100%)';
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                    btn.style.background = 'linear-gradient(135deg, #7c3aed 0%, #00d4ff 100%)';
-                }, 3000);
-            }).catch(() => {
-                fallbackCopyGrokPrompt(promptText);
-            });
-        } else {
-            fallbackCopyGrokPrompt(promptText);
-        }
-    }
-   
-    function fallbackCopyGrokPrompt(text) {
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.select();
-        try {
-            document.execCommand('copy');
-            const btn = event.target;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '✅ 已复制！现在前往 Grok 粘贴使用';
-            btn.style.background = 'linear-gradient(135deg, #10b981 0%, #00d4ff 100%)';
+            // 绑定复制按钮事件
             setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.style.background = 'linear-gradient(135deg, #7c3aed 0%, #00d4ff 100%)';
-            }, 3000);
-        } catch (err) {
-            alert('❌ 复制失败，请手动复制 Prompt');
+                const copyBtn = document.getElementById('copyGrokPromptBtn');
+                if (copyBtn) {
+                    copyBtn.addEventListener('click', () => EventHandlers.handleCopyGrokPrompt(username, grokPrompt));
+                }
+            }, 100);
+            
+            setTimeout(() => {
+                grokPromptDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
         }
-        document.body.removeChild(textarea);
-    }
+    };
    
-    function markGrokOpened() {
-        // 用户点击打开 Grok 的跟踪
-        console.log('User opened Grok');
-    }
+    // 事件处理器
+    const EventHandlers = {
+        handleAnalyzeTweet() {
+            const tweetInput = document.getElementById('tweetInput');
+            const tweet = tweetInput.value.trim();
+            
+            if (!tweet) {
+                Utils.showAlert('optimizationResults', '⚠️ 请输入推文内容', 'warning');
+                return;
+            }
    
-    function diagnoseAccountWithAdvancedAlgorithm(username) {
-        // 增强版本地分析
-        let spamScore = 0;
-        let toxicity = 0;
-        let shadowbanRisk = 0;
+            if (tweet.length > 280) {
+                Utils.showAlert('optimizationResults', '❌ 推文长度超过280字符', 'danger');
+                return;
+            }
    
-        // 用户名深度分析
-        const usernamePattern = /^[a-zA-Z0-9_]{1,15}$/;
-        const hasNumbers = /\d/.test(username);
-        const hasUnderscores = /_/.test(username);
-        const consecutiveNumbers = /\d{3,}/.test(username);
-        const consecutiveUnderscores = /_{2,}/.test(username);
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            analyzeBtn.disabled = true;
+            
+            Utils.showLoading('optimizationResults', '正在分析推文...');
+   
+            setTimeout(() => {
+                const result = TweetAnalyzer.analyze(tweet);
+                UIController.displayOptimizationResults(result, tweet);
+                analyzeBtn.disabled = false;
+            }, 1200);
+        },
+   
+        handleCheckInfluence() {
+            const usernameInput = document.getElementById('xUsername');
+            const username = usernameInput.value.trim().replace('@', '');
+            
+            if (!username) {
+                Utils.showAlert('influenceResults', '⚠️ 请先输入 X 用户名', 'warning');
+                return;
+            }
+   
+            UIController.displayInfluenceScore(username);
+        },
+   
+        handleDiagnose() {
+            const usernameInput = document.getElementById('xUsername');
+            const username = usernameInput.value.trim().replace('@', '');
+            
+            if (!username) {
+                Utils.showAlert('healthResults', '⚠️ 请输入 X 用户名', 'warning');
+                return;
+            }
+   
+            const selectedMode = document.querySelector('input[name="diagMode"]:checked');
+            const mode = selectedMode ? selectedMode.id : 'basicMode';
+            
+            if (mode === 'grokMode') {
+                if (!AppState.hasClickedTweet) {
+                    UIController.showTweetPrompt(username);
+                    return;
+                }
+                UIController.showGrokPrompt(username);
+                return;
+            }
+   
+            // 基础分析模式
+            const diagnoseBtn = document.getElementById('diagnoseBtn');
+            diagnoseBtn.disabled = true;
+            
+            Utils.showLoading('healthResults', '正在深度分析账号...');
+            
+            const retweetPrompt = document.getElementById('retweetPrompt');
+            const grokPrompt = document.getElementById('grokPrompt');
+            if (retweetPrompt) retweetPrompt.style.display = 'none';
+            if (grokPrompt) grokPrompt.style.display = 'none';
+   
+            setTimeout(() => {
+                const result = AccountDiagnoser.diagnose(username);
+                UIController.displayHealthResults(result, username);
+                diagnoseBtn.disabled = false;
+            }, 1500);
+        },
+   
+        handleUnlockGrok(username) {
+            AppState.hasClickedTweet = true;
+            
+            const tweetUrl = 'https://x.com/0xkingskuan/status/2013495958622085156';
+            window.open(tweetUrl, '_blank');
+   
+            const retweetPromptDiv = document.getElementById('retweetPrompt');
+            retweetPromptDiv.innerHTML = `
+                <div class="retweet-prompt">
+                    <h3>✅ 已解锁！</h3>
+                    <div class="verified-badge">
+                        <span>✓</span>
+                        <span>Grok AI 深度分析已激活</span>
+                    </div>
+                    <p style="margin-top: 15px;">正在启动 AI 分析...</p>
+                </div>
+            `;
+   
+            setTimeout(() => {
+                UIController.showGrokPrompt(username);
+            }, 1500);
+        },
+   
+        handleCopyGrokPrompt(username, promptText) {
+            Utils.copyToClipboard(
+                promptText,
+                () => {
+                    const btn = document.getElementById('copyGrokPromptBtn');
+                    if (btn) {
+                        const originalText = btn.innerHTML;
+                        btn.innerHTML = '✅ 已复制！现在前往 Grok 粘贴使用';
+                        btn.style.background = 'linear-gradient(135deg, #10b981 0%, #00d4ff 100%)';
+                        setTimeout(() => {
+                            btn.innerHTML = originalText;
+                            btn.style.background = 'linear-gradient(135deg, #7c3aed 0%, #00d4ff 100%)';
+                        }, 3000);
+                    }
+                },
+                () => {
+                    alert('❌ 复制失败，请手动复制 Prompt');
+                }
+            );
+        },
+   
+        handleSwitchTab(tabName) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+            
+            const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
+            const activeContent = document.getElementById(`${tabName}Tab`);
+            
+            if (activeTab) activeTab.classList.add('active');
+            if (activeContent) activeContent.classList.add('active');
+        },
+   
+        handlePostToTwitter() {
+            const tweet = document.getElementById('optimizedTweet').value.trim();
+            
+            if (!tweet) {
+                alert('没有推文内容');
+                return;
+            }
+   
+            if (tweet.length > 280) {
+                alert('推文超过280字符，请先修改');
+                return;
+            }
+   
+            const tweetText = encodeURIComponent(tweet);
+            window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank', 'width=550,height=420');
+        },
+   
+        handleCopyTweet() {
+            const tweet = document.getElementById('optimizedTweet').value;
+            
+            if (!tweet) {
+                Utils.showAlert('optimizationResults', '⚠️ 没有内容可复制', 'warning');
+                return;
+            }
+   
+            Utils.copyToClipboard(
+                tweet,
+                () => {
+                    Utils.showAlert('optimizationResults', '✅ 已复制到剪贴板!', 'success');
+                },
+                () => {
+                    Utils.showAlert('optimizationResults', '❌ 复制失败，请手动复制', 'danger');
+                }
+            );
+        },
+   
+        handleSelectDiagnosisMode(card) {
+            const mode = card.dataset.mode;
+            const allCards = document.querySelectorAll('.option-card');
+            
+            allCards.forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            
+            if (mode === 'basic') {
+                document.getElementById('basicMode').checked = true;
+            } else {
+                document.getElementById('grokMode').checked = true;
+            }
+        }
+    };
+   
+    // 初始化应用
+    function initApp() {
+        // 推文输入字符计数
+        const tweetInput = document.getElementById('tweetInput');
+        const charCount = document.getElementById('charCount');
         
-        // 垃圾评分
-        if (!usernamePattern.test(username)) spamScore += 25;
-        if (username.length < 4) spamScore += 20;
-        if (consecutiveNumbers) spamScore += 25;
-        if (consecutiveUnderscores) spamScore += 15;
-        if (hasNumbers && hasUnderscores) spamScore += 10;
-        
-        // 高风险关键词检测
-        const spamKeywords = ['crypto', 'nft', 'airdrop', 'free', 'giveaway', 'earn', 'money', 'profit', 'winner', 'claim', 'reward'];
-        spamKeywords.forEach(keyword => {
-            if (username.toLowerCase().includes(keyword)) spamScore += 20;
+        tweetInput.addEventListener('input', () => {
+            Utils.updateCharCount(tweetInput, charCount);
         });
+   
+        // 优化后推文字符计数
+        const optimizedTweet = document.getElementById('optimizedTweet');
+        const optimizedCharCount = document.getElementById('optimizedCharCount');
         
-        // 社交毒性评分
-        const toxicPatterns = ['bot', 'spam', 'fake', 'promo', 'official', 'verified', 'admin'];
-        toxicPatterns.forEach(pattern => {
-            if (username.toLowerCase().includes(pattern)) toxicity += 25;
+        optimizedTweet.addEventListener('input', () => {
+            Utils.updateCharCount(optimizedTweet, optimizedCharCount);
         });
-        
-        if (username.split('_').length > 3) toxicity += 15;
-        if (/\d{4,}/.test(username)) toxicity += 20;
-        
-        // 封禁风险计算
-        shadowbanRisk = Math.floor((spamScore * 0.5) + (toxicity * 0.5));
-        if (spamScore > 40) shadowbanRisk += 20;
-        if (toxicity > 40) shadowbanRisk += 20;
-        
-        // 综合健康评分
-        let healthScore = 100;
-        healthScore -= Math.floor(spamScore * 0.5);
-        healthScore -= Math.floor(toxicity * 0.5);
-        healthScore -= Math.floor(shadowbanRisk * 0.3);
-        healthScore = Math.max(15, Math.min(95, healthScore));
-        
-        spamScore = Math.min(100, spamScore);
-        toxicity = Math.min(100, toxicity);
-        shadowbanRisk = Math.min(100, shadowbanRisk);
-        
-        // 生成针对性建议
-        const actions = [];
-        
-        if (spamScore > 30) {
-            actions.push("⚠️ 用户名存在垃圾信号。建议：减少推广性关键词，增加原创内容比例，避免频繁发布重复信息");
-        } else if (spamScore > 15) {
-            actions.push("✓ 垃圾评分可接受。继续保持原创内容发布，避免使用诱导性语言");
-        } else {
-            actions.push("✅ 垃圾评分优秀。继续保持高质量原创内容策略");
-        }
-        
-        if (toxicity > 30) {
-            actions.push("⚠️ 社交网络存在毒性信号。立即行动：清理机器人粉丝，取消关注可疑账号，多与真实KOL互动");
-        } else if (toxicity > 15) {
-            actions.push("✓ 社交质量中等。建议提高与行业专家和真实用户的互动频率");
-        } else {
-            actions.push("✅ 社交网络健康。继续与高质量账号保持良好互动");
-        }
-        
-        if (shadowbanRisk > 40) {
-            actions.push("🚨 高封禁风险！紧急措施：立即停止批量操作，审查最近30天内容，删除可疑推文，增加多样化内容类型");
-        } else if (shadowbanRisk > 20) {
-            actions.push("⚠️ 存在限流风险。建议：保持稳定发文节奏（每天2-5条），增加视频/图片内容，避免敏感话题");
-        } else {
-            actions.push("✅ 封禁风险低。保持当前发文策略，继续优化内容质量");
-        }
    
-        let diagnosis = "";
-        if (healthScore >= 85) {
-            diagnosis = `🌟 账号 @${username} 表现卓越！X 算法评估显示极佳的账号健康度。内容策略、互动模式和社交网络均处于最佳状态。建议继续保持当前策略，可适当增加发文频率以扩大影响力。`;
-        } else if (healthScore >= 70) {
-            diagnosis = `✅ 账号 @${username} 健康状况良好。算法评估显示正向信号占主导，但仍有优化空间。建议按照行动建议微调策略，特别关注${spamScore > toxicity ? '内容质量' : '互动对象选择'}方面的改进。`;
-        } else if (healthScore >= 50) {
-            diagnosis = `⚠️ 账号 @${username} 存在明显风险信号。X 算法检测到多个负面指标，包括${spamScore > 30 ? '垃圾内容特征' : ''}${toxicity > 30 ? '、社交网络质量问题' : ''}${shadowbanRisk > 30 ? '、限流风险' : ''}。需要立即按照建议采取行动，否则可能影响账号曝光和增长。`;
-        } else {
-            diagnosis = `🚨 严重警告！账号 @${username} 处于高风险状态。多项算法指标严重异常（垃圾评分: ${spamScore}%, 社交毒性: ${toxicity}%, 封禁风险: ${shadowbanRisk}%）。强烈建议立即暂停当前所有营销活动，全面整改内容策略和互动模式，否则账号随时可能被限流甚至封禁。`;
-        }
+        // 分析按钮
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        analyzeBtn.addEventListener('click', EventHandlers.handleAnalyzeTweet);
    
-        return {
-            health_score: healthScore,
-            spam_probability: spamScore,
-            social_toxicity: toxicity,
-            shadowban_risk: shadowbanRisk,
-            actions: actions,
-            diagnosis: diagnosis
-        };
-    }
+        // 查看影响力按钮
+        const checkInfluenceBtn = document.getElementById('checkInfluenceBtn');
+        checkInfluenceBtn.addEventListener('click', EventHandlers.handleCheckInfluence);
    
-    function diagnoseAccountWithAlgorithm(username) {
-        // 基于 X Algorithm 的分析逻辑
-        
-        // 1. 垃圾概率分析 (Spam Probability)
-        let spamScore = 0;
-        const usernamePattern = /^[a-zA-Z0-9_]{1,15}$/;
-        
-        if (!usernamePattern.test(username)) {
-            spamScore += 20; // 不规范用户名
-        }
-        if (username.length < 4) {
-            spamScore += 15; // 太短的用户名可疑
-        }
-        if (/\d{3,}/.test(username)) {
-            spamScore += 15; // 连续数字可疑
-        }
-        
-        // 随机因素模拟行为分析
-        spamScore += Math.floor(Math.random() * 20);
-        
-        // 2. 社交毒性分析 (Social Graph Toxicity)
-        let toxicity = 0;
-        
-        // 基于用户名特征推测
-        if (/crypto|nft|airdrop|free|giveaway/i.test(username)) {
-            toxicity += 25; // 高风险关键词
-        }
-        if (username.includes('_') && username.split('_').length > 2) {
-            toxicity += 10; // 多下划线可疑
-        }
-        
-        toxicity += Math.floor(Math.random() * 25);
-        
-        // 3. 封禁风险分析 (Shadowban Status)
-        let shadowbanRisk = 0;
-        
-        if (spamScore > 30) shadowbanRisk += 15;
-        if (toxicity > 30) shadowbanRisk += 15;
-        
-        shadowbanRisk += Math.floor(Math.random() * 20);
-        
-        // 计算综合健康评分
-        let healthScore = 100;
-        healthScore -= Math.floor(spamScore * 0.4);
-        healthScore -= Math.floor(toxicity * 0.4);
-        healthScore -= Math.floor(shadowbanRisk * 0.5);
-        healthScore = Math.max(30, Math.min(95, healthScore));
-        
-        // 生成针对性建议
-        const actions = [];
-        
-        if (spamScore > 25) {
-            actions.push("减少频繁发布相同内容，避免触发垃圾过滤器。每条推文应有独特价值");
-        } else {
-            actions.push("继续保持原创内容发布，避免重复性内容");
-        }
-        
-        if (toxicity > 25) {
-            actions.push("审查互动对象质量，取消关注可疑机器人账号，多与真实活跃用户互动");
-        } else {
-            actions.push("保持与高质量账号互动，建立良好的社交网络");
-        }
-        
-        if (shadowbanRisk > 20) {
-            actions.push("立即检查是否违反 X 规则，减少敏感话题讨论，增加多样化内容类型");
-        } else {
-            actions.push("保持稳定的发文节奏，避免突然大量发布或长期沉寂");
-        }
+        // 诊断按钮
+        const diagnoseBtn = document.getElementById('diagnoseBtn');
+        diagnoseBtn.addEventListener('click', EventHandlers.handleDiagnose);
    
-        let diagnosis = "";
-        if (healthScore >= 80) {
-            diagnosis = `账号 @${username} 表现优秀！算法评估显示良好的互动模式和内容质量。继续保持真实互动和原创内容发布。`;
-        } else if (healthScore >= 65) {
-            diagnosis = `账号 @${username} 整体健康，但有改进空间。建议优化内容策略和互动质量，避免触发算法负面信号。`;
-        } else if (healthScore >= 50) {
-            diagnosis = `账号 @${username} 存在风险信号。算法检测到可能影响曝光的行为模式，需要立即调整策略。`;
-        } else {
-            diagnosis = `⚠️ 账号 @${username} 处于高风险状态！多个算法指标异常，强烈建议按照行动建议进行整改，否则可能面临限流或封禁。`;
-        }
-   
-        return {
-            health_score: healthScore,
-            spam_probability: Math.min(100, spamScore),
-            social_toxicity: Math.min(100, toxicity),
-            shadowban_risk: Math.min(100, shadowbanRisk),
-            actions: actions,
-            diagnosis: diagnosis
-        };
-    }
-   
-    function displayHealthResults(result, username) {
-        const healthResults = document.getElementById('healthResults');
-        
-        const scoreClass = result.health_score >= 80 ? 'success' : 
-                         result.health_score >= 60 ? 'warning' : 'danger';
-        
-        healthResults.innerHTML = `
-            <div style="--score: ${result.health_score}" class="score-circle">
-                <div class="score-text">${result.health_score}</div>
-            </div>
-   
-            <div class="alert alert-${scoreClass}" style="text-align: center;">
-                健康度: <strong>${getHealthLabel(result.health_score)}</strong>
-            </div>
-   
-            <div class="metrics">
-                <div class="metric-card">
-                    <div class="metric-value" style="${result.spam_probability > 30 ? 'color: #ef4444;' : ''}">
-                        ${result.spam_probability}%
-                    </div>
-                    <div class="metric-label">垃圾概率</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value" style="${result.social_toxicity > 30 ? 'color: #ef4444;' : ''}">
-                        ${result.social_toxicity}%
-                    </div>
-                    <div class="metric-label">社交毒性</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value" style="${result.shadowban_risk > 30 ? 'color: #ef4444;' : ''}">
-                        ${result.shadowban_risk}%
-                    </div>
-                    <div class="metric-label">封禁风险</div>
-                </div>
-            </div>
-   
-            <div class="suggestions">
-                <div class="suggestions-title">🔧 改进建议</div>
-                ${result.actions.map((action, index) => `
-                    <div class="suggestion-item">
-                        <strong>行动 ${index + 1}:</strong> ${action}
-                    </div>
-                `).join('')}
-            </div>
-   
-            <div class="alert alert-info" style="margin-top: 15px;">
-                <strong>诊断:</strong> ${result.diagnosis}
-            </div>
-        `;
-    }
-   
-    function getHealthLabel(score) {
-        if (score >= 90) return '优秀 🌟';
-        if (score >= 80) return '良好 ✅';
-        if (score >= 70) return '中等 ⚠️';
-        if (score >= 60) return '需改进 ⚠️';
-        return '危险 🚨';
-    }
-   
-    function switchTab(tabName) {
-        const tabs = document.querySelectorAll('.tab');
-        const contents = document.querySelectorAll('.tab-content');
-        
-        tabs.forEach(tab => tab.classList.remove('active'));
-        contents.forEach(content => content.classList.remove('active'));
-        
-        event.target.classList.add('active');
-        document.getElementById(tabName + 'Tab').classList.add('active');
-    }
-   
-    function postToTwitter() {
-        const tweet = document.getElementById('optimizedTweet').value.trim();
-        
-        if (!tweet) {
-            alert('没有推文内容');
-            return;
-        }
-   
-        if (tweet.length > 280) {
-            alert('推文超过280字符，请先修改');
-            return;
-        }
-   
-        const tweetText = encodeURIComponent(tweet);
-        window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank', 'width=550,height=420');
-    }
-   
-    function copyToClipboard() {
-        const tweet = document.getElementById('optimizedTweet').value;
-        
-        if (!tweet) {
-            showAlert('optimizationResults', '⚠️ 没有内容可复制', 'warning');
-            return;
-        }
-   
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(tweet).then(() => {
-                showAlert('optimizationResults', '✅ 已复制到剪贴板!', 'success');
-            }).catch(() => {
-                fallbackCopy(tweet);
+        // 诊断模式选择
+        const optionCards = document.querySelectorAll('.option-card');
+        optionCards.forEach(card => {
+            card.addEventListener('click', () => {
+                EventHandlers.handleSelectDiagnosisMode(card);
             });
-        } else {
-            fallbackCopy(tweet);
-        }
+        });
+   
+        // 标签切换
+        const tabs = document.querySelectorAll('.tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.dataset.tab;
+                EventHandlers.handleSwitchTab(tabName);
+            });
+        });
+   
+        // 发布到 Twitter 按钮
+        const postToTwitterBtn = document.getElementById('postToTwitterBtn');
+        postToTwitterBtn.addEventListener('click', EventHandlers.handlePostToTwitter);
+   
+        // 复制按钮
+        const copyBtn = document.getElementById('copyBtn');
+        copyBtn.addEventListener('click', EventHandlers.handleCopyTweet);
+   
+        console.log('✅ App initialized successfully');
     }
    
-    function fallbackCopy(text) {
-        const textarea = document.createElement('textarea');
-        textarea.value = text;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = '0';
-        document.body.appendChild(textarea);
-        textarea.select();
-        try {
-            document.execCommand('copy');
-            showAlert('optimizationResults', '✅ 已复制到剪贴板!', 'success');
-        } catch (err) {
-            showAlert('optimizationResults', '❌ 复制失败，请手动复制', 'danger');
-        }
-        document.body.removeChild(textarea);
-    }
-   
-    function showAlert(containerId, message, type) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = `
-            <div class="alert alert-${type}" style="margin-top: 15px;">
-                ${message}
-            </div>
-        `;
-    }
-   
-    function showLoading(containerId, message) {
-        const container = document.getElementById(containerId);
-        container.innerHTML = `
-            <div style="text-align: center; padding: 20px;">
-                <div class="spinner"></div>
-                <div class="loading-text">${message}</div>
-            </div>
-        `;
+    // DOM 加载完成后初始化
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initApp);
+    } else {
+        initApp();
     }
    ```
    

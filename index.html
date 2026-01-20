@@ -1090,7 +1090,17 @@
 
     // 查看影响力指数
     function checkInfluenceScore() {
-        const username = document.getElementById('xUsername').value.trim().replace('@', '');
+        console.log('checkInfluenceScore called');
+        const usernameInput = document.getElementById('xUsername');
+        console.log('Username input element:', usernameInput);
+        
+        if (!usernameInput) {
+            alert('错误: 找不到用户名输入框');
+            return;
+        }
+        
+        const username = usernameInput.value.trim().replace('@', '');
+        console.log('Username:', username);
         
         if (!username) {
             showAlert('influenceResults', '⚠️ 请先输入 X 用户名', 'warning');
@@ -1098,6 +1108,11 @@
         }
 
         const influenceDiv = document.getElementById('influenceResults');
+        if (!influenceDiv) {
+            alert('错误: 找不到结果显示区域');
+            return;
+        }
+        
         influenceDiv.innerHTML = `
             <div style="text-align: center; padding: 15px;">
                 <div class="spinner"></div>
@@ -1105,7 +1120,6 @@
             </div>
         `;
 
-        // 延迟显示 iframe
         setTimeout(() => {
             influenceDiv.innerHTML = `
                 <div class="influence-frame-container">
@@ -1132,7 +1146,17 @@
     }
 
     function diagnoseAccount() {
-        const username = document.getElementById('xUsername').value.trim().replace('@', '');
+        console.log('diagnoseAccount called');
+        const usernameInput = document.getElementById('xUsername');
+        console.log('Username input:', usernameInput);
+        
+        if (!usernameInput) {
+            alert('错误: 找不到用户名输入框');
+            return;
+        }
+        
+        const username = usernameInput.value.trim().replace('@', '');
+        console.log('Username value:', username);
         
         if (!username) {
             showAlert('healthResults', '⚠️ 请输入 X 用户名', 'warning');
@@ -1140,20 +1164,30 @@
         }
 
         const modeRadios = document.querySelectorAll('input[name="diagMode"]');
+        console.log('Mode radios found:', modeRadios.length);
+        
         let selectedMode = null;
         
         modeRadios.forEach(radio => {
+            console.log('Radio:', radio.id, 'checked:', radio.checked);
             if (radio.checked) {
                 selectedMode = radio.id;
             }
         });
 
         if (!selectedMode) {
+            console.log('No mode selected, defaulting to basicMode');
             selectedMode = 'basicMode';
-            document.getElementById('basicMode').checked = true;
+            const basicModeRadio = document.getElementById('basicMode');
+            if (basicModeRadio) {
+                basicModeRadio.checked = true;
+            }
         }
         
+        console.log('Selected mode:', selectedMode);
+        
         if (selectedMode === 'grokMode') {
+            console.log('Running Grok mode, hasClickedTweet:', hasClickedTweet);
             if (!hasClickedTweet) {
                 showTweetPrompt();
                 return;
@@ -1163,30 +1197,50 @@
         }
 
         // 基础分析模式
+        console.log('Running basic analysis');
         const diagnoseBtn = document.getElementById('diagnoseBtn');
-        diagnoseBtn.disabled = true;
+        if (diagnoseBtn) {
+            diagnoseBtn.disabled = true;
+        }
         
         showLoading('healthResults', '正在深度分析账号...');
-        document.getElementById('retweetPrompt').style.display = 'none';
-        document.getElementById('grokPrompt').style.display = 'none';
+        
+        const retweetPrompt = document.getElementById('retweetPrompt');
+        const grokPrompt = document.getElementById('grokPrompt');
+        
+        if (retweetPrompt) retweetPrompt.style.display = 'none';
+        if (grokPrompt) grokPrompt.style.display = 'none';
 
         setTimeout(() => {
             const result = diagnoseAccountWithAlgorithm(username);
             displayHealthResults(result, username);
-            diagnoseBtn.disabled = false;
+            if (diagnoseBtn) {
+                diagnoseBtn.disabled = false;
+            }
         }, 1500);
     }
 
     function selectDiagnosisMode(mode) {
+        console.log('selectDiagnosisMode called with mode:', mode);
         const cards = document.querySelectorAll('.option-card');
+        console.log('Found cards:', cards.length);
+        
         cards.forEach(card => card.classList.remove('selected'));
         
         if (mode === 'basic') {
-            document.getElementById('basicMode').checked = true;
-            cards[0].classList.add('selected');
+            const basicMode = document.getElementById('basicMode');
+            if (basicMode) {
+                basicMode.checked = true;
+                console.log('Basic mode selected');
+            }
+            if (cards[0]) cards[0].classList.add('selected');
         } else {
-            document.getElementById('grokMode').checked = true;
-            cards[1].classList.add('selected');
+            const grokMode = document.getElementById('grokMode');
+            if (grokMode) {
+                grokMode.checked = true;
+                console.log('Grok mode selected');
+            }
+            if (cards[1]) cards[1].classList.add('selected');
         }
     }
 

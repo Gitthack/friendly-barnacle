@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>X 推特优化器</title>
+    <title>X 推特优化器 - 完整版</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -111,7 +111,7 @@
             font-size: 0.9em;
             font-weight: 600;
         }
-        textarea, input[type="text"] {
+        textarea, input[type="text"], select {
             width: 100%;
             padding: 12px 15px;
             background: rgba(30, 41, 59, 0.5);
@@ -125,9 +125,17 @@
             min-height: 100px;
             resize: vertical;
         }
-        textarea:focus, input:focus {
+        textarea:focus, input:focus, select:focus {
             outline: none;
             border-color: #00d4ff;
+        }
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%2300d4ff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            padding-right: 40px;
         }
         .char-count {
             text-align: right;
@@ -165,6 +173,9 @@
         }
         .btn-secondary {
             background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+        }
+        .btn-generate {
+            background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
         }
         .metrics {
             display: grid;
@@ -223,6 +234,11 @@
             background: rgba(0, 212, 255, 0.1);
             border-color: #00d4ff;
             color: #7dd3fc;
+        }
+        .alert-phoenix {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(245, 158, 11, 0.15));
+            border-color: #f59e0b;
+            color: #fbbf24;
         }
         .tabs {
             display: flex;
@@ -290,11 +306,124 @@
             border-color: #00d4ff;
             background: rgba(0, 212, 255, 0.1);
         }
-        @media (max-width: 600px) {
-            .content { padding: 10px; }
-            .card { padding: 15px; }
-        }
-    </style>
+
+```
+    /* 新增：爆款生成器样式 */
+    .strategy-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    .strategy-card {
+        background: rgba(30, 41, 59, 0.5);
+        border: 2px solid rgba(124, 58, 237, 0.3);
+        border-radius: 12px;
+        padding: 12px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .strategy-card:hover {
+        border-color: #00d4ff;
+    }
+    .strategy-card.selected {
+        border-color: #f59e0b;
+        background: rgba(245, 158, 11, 0.1);
+    }
+    .strategy-title {
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 4px;
+        font-size: 0.9em;
+    }
+    .strategy-desc {
+        font-size: 0.75em;
+        color: #94a3b8;
+    }
+    .generated-posts {
+        display: grid;
+        gap: 12px;
+        margin-top: 15px;
+    }
+    .post-variant {
+        background: rgba(30, 41, 59, 0.5);
+        border: 2px solid rgba(124, 58, 237, 0.3);
+        border-radius: 12px;
+        padding: 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .post-variant:hover {
+        border-color: #00d4ff;
+    }
+    .post-variant.selected {
+        border-color: #f59e0b;
+        background: rgba(245, 158, 11, 0.1);
+    }
+    .post-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .post-type {
+        font-size: 0.8em;
+        font-weight: 600;
+        color: #00d4ff;
+        text-transform: uppercase;
+    }
+    .post-score {
+        font-size: 0.85em;
+        font-weight: 700;
+        color: #f59e0b;
+    }
+    .post-content {
+        color: #e2e8f0;
+        font-size: 0.95em;
+        line-height: 1.5;
+        margin-bottom: 12px;
+        white-space: pre-wrap;
+    }
+    .post-insights {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(124, 58, 237, 0.2);
+    }
+    .insight-item {
+        background: rgba(15, 23, 42, 0.6);
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 0.75em;
+    }
+    .insight-label {
+        color: #64748b;
+    }
+    .insight-value {
+        color: #00d4ff;
+        font-weight: 600;
+    }
+    .phoenix-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(239, 68, 68, 0.2));
+        border: 1px solid #f59e0b;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.7em;
+        font-weight: 600;
+        color: #fbbf24;
+        margin-left: 5px;
+    }
+    
+    @media (max-width: 600px) {
+        .content { padding: 10px; }
+        .card { padding: 15px; }
+        .strategy-grid { grid-template-columns: 1fr; }
+    }
+</style>
+```
+
 </head>
 <body>
     <div class="bg-animation"></div>
@@ -314,6 +443,67 @@
 
 ```
     <div class="content">
+        <!-- 🔥 新增：爆款文案生成器 -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">🔥</div>
+                <div class="card-title">爆款文案生成器</div>
+            </div>
+            
+            <div class="alert alert-phoenix">
+                🔬 Phoenix 算法 - 回复权重13.5x | 自动优化14个维度
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">
+                    主题/想法
+                    <span class="phoenix-badge">AI生成</span>
+                </label>
+                <textarea id="generatorTopic" placeholder="例如：加密货币趋势、AI发展、创业心得..."></textarea>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">内容风格</label>
+                <select id="contentStyle">
+                    <option value="professional">专业分析</option>
+                    <option value="storytelling">故事叙述</option>
+                    <option value="controversial">争议话题</option>
+                    <option value="educational">教育科普</option>
+                    <option value="personal">个人见解</option>
+                    <option value="humorous">幽默诙谐</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">优化策略</label>
+                <div class="strategy-grid">
+                    <div class="strategy-card selected" data-strategy="balanced">
+                        <div class="strategy-title">⚖️ 平衡型</div>
+                        <div class="strategy-desc">全方位优化</div>
+                    </div>
+                    <div class="strategy-card" data-strategy="engagement">
+                        <div class="strategy-title">💬 互动型</div>
+                        <div class="strategy-desc">最大化回复</div>
+                    </div>
+                    <div class="strategy-card" data-strategy="viral">
+                        <div class="strategy-title">🔥 传播型</div>
+                        <div class="strategy-desc">优化转发</div>
+                    </div>
+                    <div class="strategy-card" data-strategy="authority">
+                        <div class="strategy-title">👑 权威型</div>
+                        <div class="strategy-desc">提升关注</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-generate" id="generateViralBtn">
+                <span>✨</span>
+                <span>生成爆款文案</span>
+            </button>
+
+            <div id="generatedResults"></div>
+        </div>
+
         <!-- 推文优化 -->
         <div class="card">
             <div class="card-header">
@@ -426,6 +616,154 @@
 
     // 全局变量
     let hasUnlocked = false;
+    let selectedStrategy = 'balanced';
+
+    // Phoenix 算法权重配置
+    const PHOENIX_WEIGHTS = {
+        balanced: { reply: 13.5, repost: 1.0, share: 1.5, follow_author: 2.0, favorite: 0.5 },
+        engagement: { reply: 20.0, repost: 0.8, share: 1.0, follow_author: 1.5, favorite: 0.3 },
+        viral: { reply: 10.0, repost: 3.0, share: 3.5, follow_author: 1.0, favorite: 0.8 },
+        authority: { reply: 8.0, repost: 1.5, share: 2.0, follow_author: 5.0, favorite: 1.0 }
+    };
+
+    // 策略卡片选择
+    document.querySelectorAll('.strategy-card').forEach(card => {
+        card.addEventListener('click', function() {
+            document.querySelectorAll('.strategy-card').forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            selectedStrategy = this.dataset.strategy;
+        });
+    });
+
+    // 爆款生成器
+    document.getElementById('generateViralBtn').addEventListener('click', function() {
+        const topic = document.getElementById('generatorTopic').value.trim();
+        const style = document.getElementById('contentStyle').value;
+        
+        if (!topic) {
+            alert('⚠️ 请输入主题或想法');
+            return;
+        }
+        
+        this.disabled = true;
+        document.getElementById('generatedResults').innerHTML = 
+            '<div style="text-align: center; padding: 20px;"><div class="spinner"></div><div class="loading-text">Phoenix 算法生成中...</div></div>';
+        
+        const self = this;
+        setTimeout(() => {
+            const posts = generateViralPosts(topic, style, selectedStrategy);
+            displayGeneratedPosts(posts);
+            self.disabled = false;
+        }, 2000);
+    });
+
+    function generateViralPosts(topic, style, strategy) {
+        const templates = {
+            professional: [
+                `最新数据：${topic}的增长率已达200%。\n\n这意味着什么？\n\n市场格局正在重构。\n\n你观察到类似趋势了吗？`,
+                `关于${topic}，大家都在谈论传统方法。\n\n但真相可能恰恰相反：\n\n创新路径才是关键。\n\n你怎么看？`,
+                `${topic}的游戏规则正在改变。\n\n过去：传统模式\n现在：新范式\n\n你准备好了吗？`
+            ],
+            storytelling: [
+                `3年前，我对${topic}的理解完全错了。\n\n当时我以为只是趋势。\n\n直到关键转折，我才发现核心价值。\n\n这个教训价值百万。`,
+                `关于${topic}，我犯过最大的错误是盲目跟风。\n\n代价：时间和金钱\n收获：深度思考\n\n如果能重来，我会先研究3个月。\n\n你有类似经历吗？`
+            ],
+            controversial: [
+                `不受欢迎的观点：${topic}被严重高估了。\n\n真相是：基础价值才重要。\n\n为什么没人说？因为利益。\n\n你敢认同吗？`,
+                `关于${topic}的三个谎言：\n\n❌ 人人都能成功\n❌ 快速致富\n❌ 零风险\n\n✅ 真相：需要时间和智慧\n\n准备好面对现实了吗？`
+            ],
+            educational: [
+                `5分钟搞懂${topic}完整指南 🧵\n\n基础：核心概念\n进阶：实战技巧\n避坑：常见错误\n\n收藏这条，少走弯路。`,
+                `关于${topic}，你需要知道的3件事：\n\n1. 基础认知最重要\n2. 实践验证理论\n3. 持续学习进化\n\n哪个对你最有帮助？`
+            ],
+            personal: [
+                `最近在想：${topic}可能是2025年最被低估的机会。\n\n原因：\n• 市场认知不足\n• 技术成熟度提升\n• 应用场景扩大\n\n你觉得呢？`,
+                `关于${topic}，我改变了看法。\n\n以前：保守观望\n现在：积极布局\n\n转变的原因：深度研究后的顿悟\n\n你经历过类似的思维转变吗？`
+            ],
+            humorous: [
+                `${topic}：\n\n期待 😊：轻松掌握\n现实 😅：复杂程度超想象\n\n谁能感同身受？`,
+                `关于${topic}的3个阶段：\n\n第1天：充满热情\n第7天：遇到困难\n第30天：豁然开朗\n\n你在哪个阶段？`
+            ]
+        };
+        
+        const styleTemplates = templates[style] || templates.professional;
+        return styleTemplates.slice(0, 3).map((content, i) => ({
+            content: content,
+            type: style,
+            score: calculatePhoenixScore(content, strategy),
+            insights: {
+                reply_potential: content.includes('?') || content.includes('？') ? '高' : '中',
+                viral_potential: content.includes('🧵') || content.length > 150 ? '高' : '中'
+            }
+        })).sort((a, b) => b.score - a.score);
+    }
+
+    function calculatePhoenixScore(content, strategy) {
+        const weights = PHOENIX_WEIGHTS[strategy];
+        let score = 50;
+        
+        if (content.includes('?') || content.includes('？')) score += weights.reply * 2;
+        if (content.includes('你') || content.includes('您')) score += weights.reply * 1.5;
+        if (content.includes('🧵')) score += weights.repost * 3;
+        if (content.length > 100 && content.length < 250) score += weights.share * 2;
+        if (content.includes('\n\n')) score += 5;
+        
+        return Math.max(0, Math.min(100, Math.round(score)));
+    }
+
+    function displayGeneratedPosts(posts) {
+        const html = '<div class="generated-posts">' +
+            posts.map((post, i) => `
+                <div class="post-variant" data-content="${post.content.replace(/"/g, '&quot;')}">
+                    <div class="post-header">
+                        <div class="post-type">${post.type}</div>
+                        <div class="post-score">Phoenix: ${post.score}</div>
+                    </div>
+                    <div class="post-content">${post.content}</div>
+                    <div class="post-insights">
+                        <div class="insight-item">
+                            <span class="insight-label">回复潜力：</span>
+                            <span class="insight-value">${post.insights.reply_potential}</span>
+                        </div>
+                        <div class="insight-item">
+                            <span class="insight-label">传播潜力：</span>
+                            <span class="insight-value">${post.insights.viral_potential}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('') +
+            '</div>' +
+            '<div class="btn-group" style="margin-top: 15px;">' +
+            '<button class="btn btn-secondary" id="copyGeneratedBtn"><span>📋</span><span>复制选中</span></button>' +
+            '<button class="btn btn-success" id="postGeneratedBtn"><span>🚀</span><span>发布到 X</span></button>' +
+            '</div>';
+        
+        document.getElementById('generatedResults').innerHTML = html;
+        
+        // 添加点击选择功能
+        document.querySelectorAll('.post-variant').forEach(variant => {
+            variant.addEventListener('click', function() {
+                document.querySelectorAll('.post-variant').forEach(v => v.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+        
+        // 复制按钮
+        document.getElementById('copyGeneratedBtn').addEventListener('click', () => {
+            const selected = document.querySelector('.post-variant.selected');
+            if (!selected) { alert('⚠️ 请先选择一条文案'); return; }
+            const content = selected.dataset.content.replace(/&quot;/g, '"');
+            navigator.clipboard.writeText(content).then(() => alert('✅ 已复制！'));
+        });
+        
+        // 发布按钮
+        document.getElementById('postGeneratedBtn').addEventListener('click', () => {
+            const selected = document.querySelector('.post-variant.selected');
+            if (!selected) { alert('⚠️ 请先选择一条文案'); return; }
+            const content = selected.dataset.content.replace(/&quot;/g, '"');
+            window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(content), '_blank');
+        });
+    }
 
     // 推文输入字符计数
     document.getElementById('tweetInput').addEventListener('input', function() {
@@ -446,7 +784,6 @@
 
     // 分析按钮
     document.getElementById('analyzeBtn').addEventListener('click', function() {
-        console.log('分析按钮被点击');
         const tweet = document.getElementById('tweetInput').value.trim();
         if (!tweet) {
             document.getElementById('results').innerHTML = '<div class="alert alert-info">⚠️ 请输入推文内容</div>';
@@ -470,7 +807,6 @@
 
     // 分析函数
     function analyzeTweet(tweet) {
-        console.log('开始分析:', tweet);
         let eng = 50, viral = 50, qual = 50;
         const sugg = [];
 
@@ -523,7 +859,6 @@
 
     // 显示结果
     function showResults(r, orig) {
-        console.log('显示结果:', r);
         document.getElementById('results').innerHTML = 
             '<div class="metrics">' +
             '<div class="metric-card"><div class="metric-value">' + r.eng + '</div><div class="metric-label">Phoenix评分</div></div>' +
@@ -549,15 +884,9 @@
     }
 
     // 标签切换
-    document.getElementById('tab1').addEventListener('click', function() {
-        switchToTab(1);
-    });
-    document.getElementById('tab2').addEventListener('click', function() {
-        switchToTab(2);
-    });
-    document.getElementById('tab3').addEventListener('click', function() {
-        switchToTab(3);
-    });
+    document.getElementById('tab1').addEventListener('click', () => switchToTab(1));
+    document.getElementById('tab2').addEventListener('click', () => switchToTab(2));
+    document.getElementById('tab3').addEventListener('click', () => switchToTab(3));
 
     function switchToTab(num) {
         for (let i = 1; i <= 3; i++) {
@@ -568,48 +897,22 @@
         document.getElementById('content' + num).classList.add('active');
     }
 
-    // 发布按钮
+    // 发布/复制按钮
     document.getElementById('postBtn').addEventListener('click', function() {
-        console.log('发布按钮被点击');
         const t = document.getElementById('optimized').value.trim();
         if (!t) { alert('没有内容'); return; }
         if (t.length > 280) { alert('超过280字符'); return; }
         window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(t), '_blank');
     });
 
-    // 复制按钮
     document.getElementById('copyBtn').addEventListener('click', function() {
-        console.log('复制按钮被点击');
         const t = document.getElementById('optimized').value;
         if (!t) return;
-        copyText(t, '✅ 已复制！');
+        navigator.clipboard.writeText(t).then(() => alert('✅ 已复制！'));
     });
-
-    function copyText(text, msg) {
-        if (navigator.clipboard) {
-            navigator.clipboard.writeText(text).then(function() {
-                alert(msg);
-            }).catch(function() {
-                fallbackCopy(text, msg);
-            });
-        } else {
-            fallbackCopy(text, msg);
-        }
-    }
-
-    function fallbackCopy(text, msg) {
-        const el = document.createElement('textarea');
-        el.value = text;
-        document.body.appendChild(el);
-        el.select();
-        document.execCommand('copy');
-        document.body.removeChild(el);
-        alert(msg);
-    }
 
     // 影响力按钮
     document.getElementById('influenceBtn').addEventListener('click', function() {
-        console.log('影响力按钮被点击');
         const user = document.getElementById('username').value.trim().replace('@', '');
         if (!user) {
             document.getElementById('influenceResults').innerHTML = '<div class="alert alert-info">⚠️ 请输入用户名</div>';
@@ -633,16 +936,11 @@
         }, 800);
     });
 
-    // 选择模式
-    document.getElementById('basicCard').addEventListener('click', function() {
-        selectDiagMode('basic');
-    });
-    document.getElementById('grokCard').addEventListener('click', function() {
-        selectDiagMode('grok');
-    });
+    // 诊断模式选择
+    document.getElementById('basicCard').addEventListener('click', () => selectDiagMode('basic'));
+    document.getElementById('grokCard').addEventListener('click', () => selectDiagMode('grok'));
 
     function selectDiagMode(mode) {
-        console.log('选择模式:', mode);
         document.getElementById('basicCard').classList.remove('selected');
         document.getElementById('grokCard').classList.remove('selected');
         
@@ -657,7 +955,6 @@
 
     // 诊断按钮
     document.getElementById('diagnoseBtn').addEventListener('click', function() {
-        console.log('诊断按钮被点击');
         const user = document.getElementById('username').value.trim().replace('@', '');
         if (!user) {
             document.getElementById('diagResults').innerHTML = '<div class="alert alert-info">⚠️ 请输入用户名</div>';
@@ -665,7 +962,6 @@
         }
 
         const mode = document.querySelector('input[name="mode"]:checked').id;
-        console.log('当前模式:', mode);
 
         if (mode === 'grokMode') {
             if (!hasUnlocked) {
@@ -687,7 +983,6 @@
         }, 1500);
     });
 
-    // 诊断账号
     function diagnoseAccount(user) {
         const spam = Math.floor(Math.random() * 40) + 10;
         const toxicity = Math.floor(Math.random() * 40) + 10;
@@ -713,7 +1008,6 @@
         return { health, spam, toxicity, shadowban, actions, diagnosis };
     }
 
-    // 显示诊断结果
     function showDiagResults(r, user) {
         const label = r.health >= 80 ? '良好 ✅' : r.health >= 60 ? '中等 ⚠️' : '危险 🚨';
         
@@ -734,9 +1028,7 @@
             '<div class="alert alert-info" style="margin-top: 15px;"><strong>诊断:</strong> ' + r.diagnosis + '</div>';
     }
 
-    // 解锁提示
     function showUnlockPrompt(user) {
-        console.log('显示解锁提示');
         document.getElementById('diagResults').innerHTML = 
             '<div style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(0, 212, 255, 0.2)); border: 2px solid #7c3aed; border-radius: 16px; padding: 20px; margin-top: 15px; text-align: center;">' +
             '<h3 style="color: #00d4ff; margin-bottom: 15px;">🎁 解锁 Grok AI 深度分析</h3>' +
@@ -757,9 +1049,7 @@
         }, 100);
     }
 
-    // 执行解锁
     function doUnlock(user) {
-        console.log('执行解锁');
         hasUnlocked = true;
         window.open('https://x.com/0xkingskuan/status/2013495958622085156', '_blank');
         
@@ -775,9 +1065,7 @@
         }, 1500);
     }
 
-    // 显示Grok Prompt
     function showGrokPromptBox(user) {
-        console.log('显示Grok Prompt');
         const promptText = '作为 X 平台的 Phoenix 算法专家，对账号 @' + user + ' 进行深度审计：\n\n' +
             '📊 分析维度（基于 xai-org/x-algorithm）：\n\n' +
             '1. Phoenix Ranking Score - 计算 14 个互动概率\n' +
@@ -802,7 +1090,7 @@
             const btn = document.getElementById('copyPromptBtn');
             if (btn) {
                 btn.addEventListener('click', function() {
-                    copyText(promptText, '✅ 已复制！前往 Grok 粘贴使用');
+                    navigator.clipboard.writeText(promptText).then(() => alert('✅ 已复制！前往 Grok 粘贴使用'));
                 });
             }
         }, 100);

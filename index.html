@@ -608,6 +608,59 @@
             <div id="diagResults"></div>
             <div id="grokPrompt" style="display: none;"></div>
         </div>
+
+        <!-- 🆕 推特链接爬取 -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">🔗</div>
+                <div class="card-title">推文链接爬取</div>
+            </div>
+            
+            <div class="alert alert-phoenix">
+                🤖 AI 驱动 - 自动查找提及特定项目的推文
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">
+                    X 用户名
+                    <span class="phoenix-badge">@username</span>
+                </label>
+                <input type="text" id="crawlUsername" placeholder="例如：0xKingsKuan">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">
+                    项目/标签
+                    <span class="phoenix-badge">@project</span>
+                </label>
+                <input type="text" id="crawlProject" placeholder="例如：ferra_protocol">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">过滤选项</label>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <label style="display: flex; align-items: center; gap: 5px; color: #cbd5e1; cursor: pointer;">
+                        <input type="checkbox" id="excludeReplies" checked style="cursor: pointer;">
+                        <span style="font-size: 0.9em;">排除回复</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; color: #cbd5e1; cursor: pointer;">
+                        <input type="checkbox" id="excludeRetweets" checked style="cursor: pointer;">
+                        <span style="font-size: 0.9em;">排除转发</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 5px; color: #cbd5e1; cursor: pointer;">
+                        <input type="checkbox" id="onlyOriginal" checked style="cursor: pointer;">
+                        <span style="font-size: 0.9em;">仅原创推文</span>
+                    </label>
+                </div>
+            </div>
+
+            <button class="btn btn-generate" id="crawlBtn">
+                <span>🔍</span>
+                <span>查找推文链接</span>
+            </button>
+
+            <div id="crawlResults"></div>
+        </div>
     </div>
 </div>
 
@@ -617,6 +670,7 @@
     // 全局变量
     let hasUnlocked = false;
     let hasUnlockedGenerator = false;  // 新增：生成器解锁状态
+    let hasUnlockedCrawler = false;    // 新增：爬取器解锁状态
     let selectedStrategy = 'balanced';
 
     // Phoenix 算法权重配置
@@ -1160,6 +1214,208 @@
         setTimeout(function() {
             document.getElementById('generateViralBtn').click();
         }, 2000);
+    }
+
+    // 推文链接爬取功能
+    document.getElementById('crawlBtn').addEventListener('click', function() {
+        const username = document.getElementById('crawlUsername').value.trim().replace('@', '');
+        const project = document.getElementById('crawlProject').value.trim().replace('@', '');
+        
+        if (!username) {
+            alert('⚠️ 请输入 X 用户名');
+            return;
+        }
+        
+        if (!project) {
+            alert('⚠️ 请输入项目/标签名');
+            return;
+        }
+        
+        // 检查是否已解锁
+        if (!hasUnlockedCrawler) {
+            const excludeReplies = document.getElementById('excludeReplies').checked;
+            const excludeRetweets = document.getElementById('excludeRetweets').checked;
+            const onlyOriginal = document.getElementById('onlyOriginal').checked;
+            showCrawlerUnlockPrompt(username, project, excludeReplies, excludeRetweets, onlyOriginal);
+            return;
+        }
+        
+        const excludeReplies = document.getElementById('excludeReplies').checked;
+        const excludeRetweets = document.getElementById('excludeRetweets').checked;
+        const onlyOriginal = document.getElementById('onlyOriginal').checked;
+        
+        showCrawlPrompt(username, project, excludeReplies, excludeRetweets, onlyOriginal);
+    });
+
+    // 爬取器解锁提示
+    function showCrawlerUnlockPrompt(username, project, excludeReplies, excludeRetweets, onlyOriginal) {
+        document.getElementById('crawlResults').innerHTML = 
+            '<div style="background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(124, 58, 237, 0.2)); border: 2px solid #00d4ff; border-radius: 16px; padding: 25px; margin-top: 15px; text-align: center;">' +
+            '<div style="font-size: 3em; margin-bottom: 15px;">🔗</div>' +
+            '<h3 style="color: #00d4ff; margin-bottom: 15px; font-size: 1.3em;">解锁推文链接爬取</h3>' +
+            '<p style="color: #cbd5e1; margin-bottom: 20px; line-height: 1.6;">使用 Grok AI 智能查找推文链接<br>查看推文即可永久解锁</p>' +
+            '<div style="background: rgba(15, 23, 42, 0.6); padding: 15px; border-radius: 12px; margin-bottom: 20px;">' +
+            '<div style="color: #94a3b8; font-size: 0.9em; margin-bottom: 8px;">🔍 您的查询需求</div>' +
+            '<div style="color: #fff; font-weight: 600;">用户：@' + username + '</div>' +
+            '<div style="color: #fff; font-weight: 600; margin-top: 5px;">项目：@' + project + '</div>' +
+            '<div style="color: #00d4ff; font-size: 0.85em; margin-top: 8px;">' + 
+            (excludeReplies ? '✓ 排除回复 ' : '') + 
+            (excludeRetweets ? '✓ 排除转发 ' : '') + 
+            (onlyOriginal ? '✓ 仅原创' : '') +
+            '</div>' +
+            '</div>' +
+            '<button id="unlockCrawlerBtn" style="background: linear-gradient(135deg, #00d4ff, #7c3aed); border: none; padding: 16px 32px; border-radius: 12px; color: white; font-weight: 700; cursor: pointer; font-size: 1em; transition: all 0.3s; box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);">' +
+            '🔗 查看推文并解锁' +
+            '</button>' +
+            '<div style="margin-top: 20px; padding: 12px; background: rgba(30, 41, 59, 0.5); border-radius: 8px; color: #94a3b8; font-size: 0.85em; border-left: 3px solid #00d4ff;">' +
+            '💡 解锁后立即生成 Grok Prompt' +
+            '</div>' +
+            '</div>';
+        
+        setTimeout(function() {
+            const btn = document.getElementById('unlockCrawlerBtn');
+            if (btn) {
+                btn.addEventListener('click', function() {
+                    doCrawlerUnlock(username, project, excludeReplies, excludeRetweets, onlyOriginal);
+                });
+                btn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.boxShadow = '0 6px 20px rgba(0, 212, 255, 0.5)';
+                });
+                btn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = '0 4px 15px rgba(0, 212, 255, 0.3)';
+                });
+            }
+        }, 100);
+    }
+
+    // 执行爬取器解锁
+    function doCrawlerUnlock(username, project, excludeReplies, excludeRetweets, onlyOriginal) {
+        hasUnlockedCrawler = true;
+        window.open('https://x.com/0xkingskuan/status/2013976242605699111', '_blank');
+        
+        document.getElementById('crawlResults').innerHTML = 
+            '<div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(0, 212, 255, 0.2)); border: 2px solid #10b981; border-radius: 16px; padding: 25px; margin-top: 15px; text-align: center;">' +
+            '<div style="font-size: 3em; margin-bottom: 15px;">✅</div>' +
+            '<h3 style="color: #10b981; margin-bottom: 15px; font-size: 1.3em;">解锁成功！</h3>' +
+            '<div style="display: inline-flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 8px 16px; border-radius: 20px; margin-bottom: 20px; font-weight: 600;">' +
+            '🔗 推文爬取已激活' +
+            '</div>' +
+            '<p style="color: #cbd5e1; margin-bottom: 20px;">正在生成 Grok Prompt...</p>' +
+            '<div style="margin: 20px auto;"><div class="spinner"></div></div>' +
+            '</div>';
+
+        setTimeout(function() {
+            showCrawlPrompt(username, project, excludeReplies, excludeRetweets, onlyOriginal);
+        }, 2000);
+    }
+
+    function showCrawlPrompt(username, project, excludeReplies, excludeRetweets, onlyOriginal) {
+        // 构建 Grok Prompt
+        let promptParts = [`根据 @${username} 的账号，列出他全部推文有 @${project} 的标签`];
+        
+        if (excludeReplies) {
+            promptParts.push('不要回复');
+        }
+        
+        if (excludeRetweets) {
+            promptParts.push('不要转发');
+        }
+        
+        if (onlyOriginal) {
+            promptParts.push('只要他写过的推文链接');
+        } else {
+            promptParts.push('列出所有相关推文链接');
+        }
+        
+        const grokPrompt = promptParts.join('、');
+        
+        // 显示结果界面
+        document.getElementById('crawlResults').innerHTML = 
+            '<div style="margin-top: 20px;">' +
+            '<div style="background: rgba(30, 41, 59, 0.6); border: 2px solid #f59e0b; border-radius: 16px; padding: 20px;">' +
+            '<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">' +
+            '<div style="font-size: 2em;">🤖</div>' +
+            '<div>' +
+            '<h4 style="color: #fbbf24; margin: 0; font-size: 1.1em;">Grok AI 查询</h4>' +
+            '<p style="color: #94a3b8; margin: 5px 0 0 0; font-size: 0.85em;">使用 AI 自动查找推文</p>' +
+            '</div>' +
+            '</div>' +
+            
+            '<div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 15px;">' +
+            '<div style="color: #94a3b8; font-size: 0.85em; margin-bottom: 8px;">📋 查询参数</div>' +
+            '<div style="display: grid; gap: 8px;">' +
+            '<div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(30, 41, 59, 0.5); border-radius: 6px;">' +
+            '<span style="color: #64748b;">用户名</span>' +
+            '<span style="color: #00d4ff; font-weight: 600;">@' + username + '</span>' +
+            '</div>' +
+            '<div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(30, 41, 59, 0.5); border-radius: 6px;">' +
+            '<span style="color: #64748b;">项目</span>' +
+            '<span style="color: #00d4ff; font-weight: 600;">@' + project + '</span>' +
+            '</div>' +
+            '<div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(30, 41, 59, 0.5); border-radius: 6px;">' +
+            '<span style="color: #64748b;">过滤</span>' +
+            '<span style="color: #fbbf24; font-size: 0.85em;">' + 
+            (excludeReplies ? '✓ 排除回复 ' : '') + 
+            (excludeRetweets ? '✓ 排除转发 ' : '') + 
+            (onlyOriginal ? '✓ 仅原创' : '') +
+            '</span>' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            
+            '<div style="background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 15px;">' +
+            '<div style="color: #94a3b8; font-size: 0.85em; margin-bottom: 10px;">🎯 Grok Prompt</div>' +
+            '<div style="background: rgba(30, 41, 59, 0.6); padding: 12px; border-radius: 8px; color: #cbd5e1; font-size: 0.9em; line-height: 1.6; font-family: monospace; white-space: pre-wrap;">' + grokPrompt + '</div>' +
+            '</div>' +
+            
+            '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">' +
+            '<button id="copyCrawlPromptBtn" style="background: linear-gradient(135deg, #7c3aed, #00d4ff); border: none; padding: 12px 20px; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; transition: all 0.3s;">' +
+            '<span style="margin-right: 6px;">📋</span>复制 Prompt' +
+            '</button>' +
+            '<a href="https://x.com/i/grok" target="_blank" style="background: linear-gradient(135deg, #f59e0b, #ef4444); border: none; padding: 12px 20px; border-radius: 10px; color: white; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.3s;">' +
+            '<span>🚀</span>打开 Grok' +
+            '</a>' +
+            '</div>' +
+            
+            '<div class="alert alert-info" style="margin-top: 15px; margin-bottom: 0;">' +
+            '<span>💡</span>' +
+            '<span>复制 Prompt 后，在 Grok 中粘贴即可获取所有相关推文链接</span>' +
+            '</div>' +
+            
+            '</div>' +
+            '</div>';
+        
+        // 添加复制按钮事件
+        setTimeout(function() {
+            const copyBtn = document.getElementById('copyCrawlPromptBtn');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', function() {
+                    navigator.clipboard.writeText(grokPrompt).then(() => {
+                        this.innerHTML = '<span style="margin-right: 6px;">✅</span>已复制！';
+                        setTimeout(() => {
+                            this.innerHTML = '<span style="margin-right: 6px;">📋</span>复制 Prompt';
+                        }, 2000);
+                    });
+                });
+                
+                copyBtn.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.boxShadow = '0 4px 12px rgba(124, 58, 237, 0.4)';
+                });
+                
+                copyBtn.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = 'none';
+                });
+            }
+        }, 100);
+        
+        // 滚动到结果
+        setTimeout(() => {
+            document.getElementById('crawlResults').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 200);
     }
 
     console.log('✅ 所有功能已加载');
